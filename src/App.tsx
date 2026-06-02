@@ -153,6 +153,27 @@ export function App() {
     setView("board");
   };
   const addBoard = () => createBoard.mutate("New board", { onSuccess: (id) => switchBoard(id) });
+  const handleDeleteBoard = (id: string) => {
+    if (boards.length <= 1) {
+      // never leave the user boardless: create a fresh empty board, then delete this one
+      createBoard.mutate("My Board", {
+        onSuccess: (newId) => {
+          updatePrefs({ activeBoardId: newId });
+          setFilter("All");
+          setView("board");
+          deleteBoard.mutate(id);
+        },
+      });
+      return;
+    }
+    const nextId = boards.find((b) => b.id !== id)?.id ?? null;
+    deleteBoard.mutate(id);
+    if (id === activeBoardId) {
+      updatePrefs({ activeBoardId: nextId });
+      setFilter("All");
+      setView("board");
+    }
+  };
 
   // drag & drop
   const onDragStart = (e: React.DragEvent, id: string) => {
@@ -313,10 +334,7 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
         onSwitchBoard={switchBoard}
         onAddBoard={addBoard}
         onRenameBoard={(id, name) => renameBoard.mutate({ id, name })}
-        onDeleteBoard={(id) => {
-          deleteBoard.mutate(id);
-          if (id === activeBoardId) updatePrefs({ activeBoardId: boards.find((b) => b.id !== id)?.id ?? null });
-        }}
+        onDeleteBoard={handleDeleteBoard}
         theme={prefs.theme}
         onSelectTheme={(i) => updatePrefs({ theme: i, tweaks: { ...prefs.tweaks, accent: THEMES[i].accent } })}
         laneBy={laneBy}

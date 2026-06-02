@@ -65,22 +65,24 @@ export function BoardSwitcher({ boards, activeId, onSwitch, onAdd, onRename, onD
               <button className="bsw-ic" onClick={(e) => { e.stopPropagation(); setRenaming(b.id); }} title="Rename" aria-label="Rename">
                 <IconPencil s={12} />
               </button>
-              {boards.length > 1 && (
-                <button
-                  className="bsw-ic del"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm('Delete board "' + b.name + '" and all its tasks?')) {
-                      onDelete(b.id);
-                      setOpen(false);
-                    }
-                  }}
-                  title="Delete"
-                  aria-label="Delete board"
-                >
-                  <IconTrash />
-                </button>
-              )}
+              <button
+                className="bsw-ic del"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const msg =
+                    boards.length <= 1
+                      ? `Delete "${b.name}" and all its tasks? A fresh empty board will replace it.`
+                      : `Delete board "${b.name}" and all its tasks?`;
+                  if (confirm(msg)) {
+                    onDelete(b.id);
+                    setOpen(false);
+                  }
+                }}
+                title="Delete board"
+                aria-label="Delete board"
+              >
+                <IconTrash />
+              </button>
             </div>
           ))}
           <button className="bsw-add" onClick={() => { onAdd(); setOpen(false); }}>
