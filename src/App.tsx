@@ -39,7 +39,7 @@ export function App() {
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
 
-  const { prefs, update: updatePrefs } = usePreferences();
+  const { prefs, isLoaded: prefsLoaded, update: updatePrefs } = usePreferences();
   const { data: boards = [] } = useBoards();
   const createBoard = useCreateBoard();
   const renameBoard = useRenameBoard();
@@ -68,10 +68,12 @@ export function App() {
   usePomodoro();
   useCommandPaletteHotkey();
 
-  // apply theme + tweaks to CSS vars
+  // apply theme + tweaks to CSS vars — but only once real preferences have loaded,
+  // so we don't briefly overwrite the inline boot script's theme with the defaults
+  // while the query is still in flight (that caused a flash on refresh).
   useEffect(() => {
-    applyTheme(prefs.theme, prefs.tweaks);
-  }, [prefs.theme, prefs.tweaks]);
+    if (prefsLoaded) applyTheme(prefs.theme, prefs.tweaks);
+  }, [prefsLoaded, prefs.theme, prefs.tweaks]);
 
   // refresh AI usage card when an AI action completes
   useEffect(() => {
