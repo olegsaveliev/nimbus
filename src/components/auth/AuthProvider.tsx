@@ -27,9 +27,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setLoading(false);
     });
+    let prevUser: string | null = null;
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
-      // Drop any cached server state when the signed-in user changes.
-      if (event === "SIGNED_OUT" || event === "SIGNED_IN") queryClient.clear();
+      // Only drop cached server state on a real sign-out or a user switch — NOT on
+      // every SIGNED_IN / TOKEN_REFRESHED (those re-fire on tab refocus and would
+      // otherwise wipe prefs and make the theme flash back to default).
+      const nextUser = s?.user?.id ?? null;
+      if (event === "SIGNED_OUT" || (prevUser && nextUser && prevUser !== nextUser)) {
+        queryClient.clear();
+      }
+      prevUser = nextUser;
       setSession(s);
     });
     return () => sub.subscription.unsubscribe();
