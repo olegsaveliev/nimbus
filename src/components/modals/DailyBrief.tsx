@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { Task } from "@/types";
 import { fmtDue } from "@/domain/dates";
 import { type BriefMode, buildBrief, briefPlainText, briefPrompt, fallbackNarrative } from "@/domain/brief";
@@ -43,10 +43,6 @@ export function DailyBrief({ tasks, onClose }: { tasks: Task[]; onClose: () => v
     [tasks],
   );
 
-  useEffect(() => {
-    generate(mode, false);
-  }, [mode, generate]);
-
   const data = buildBrief(tasks, mode);
   const copy = () => {
     const txt = (narr[mode] ? narr[mode] + "\n\n" : "") + briefPlainText(tasks, mode);
@@ -80,8 +76,10 @@ export function DailyBrief({ tasks, onClose }: { tasks: Task[]; onClose: () => v
             <span className="ai"><IconSpark /></span>
             {loading && !narr[mode] ? (
               <span>Reading your board<span className="dots"><span>.</span><span>.</span><span>.</span></span></span>
-            ) : (
+            ) : narr[mode] ? (
               <span>{narr[mode]}</span>
+            ) : (
+              <span className="muted">Click “Generate” for an AI summary of your board.</span>
             )}
           </div>
 
@@ -132,7 +130,7 @@ export function DailyBrief({ tasks, onClose }: { tasks: Task[]; onClose: () => v
 
           <div className="brief-foot">
             <button className="bf-btn primary" onClick={copy}><IconCopy />{copied ? "Copied!" : "Copy brief"}</button>
-            <button className="bf-btn" onClick={() => generate(mode, true)} disabled={loading}><IconSpark />{loading ? "Writing…" : "Regenerate"}</button>
+            <button className="bf-btn" onClick={() => generate(mode, true)} disabled={loading}><IconSpark />{loading ? "Writing…" : narr[mode] ? "Regenerate" : "Generate"}</button>
             <span className="brief-src" style={{ marginLeft: "auto" }}>via {aiSource()}</span>
           </div>
         </div>
