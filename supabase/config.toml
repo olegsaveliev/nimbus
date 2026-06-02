@@ -1,0 +1,7 @@
+# Supabase CLI config. Run `supabase link --project-ref <ref>` then
+# `supabase db push` and `supabase functions deploy ai`.
+project_id = "nimbus"
+
+[functions.ai]
+# Require a valid Supabase user JWT to call the AI proxy.
+verify_jwt = true

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nimbus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg"></div>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div id="root"></div>
+<script>
+  // Dev safety net: surface any uncaught error onto the page so a blank screen
+  // isn't a dead end. (Harmless to keep; only fires on errors.)
+  (function () {
+    var box;
+    function show(msg) {
+      if (!box) {
+        box = document.createElement("pre");
+        box.style.cssText =
+          "position:fixed;z-index:9999;left:12px;top:12px;right:12px;max-height:60vh;margin:0;padding:16px;" +
+          "border-radius:12px;background:rgba(255,255,255,.95);color:#b00;font:12px/1.5 ui-monospace,Menlo,monospace;" +
+          "white-space:pre-wrap;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)";
+        document.body.appendChild(box);
+      }
+      box.textContent += String(msg) + "\n\n";
+    }
+    window.addEventListener("error", function (e) { show("Error: " + ((e.error && e.error.stack) || e.message)); });
+    window.addEventListener("unhandledrejection", function (e) { show("Unhandled rejection: " + ((e.reason && e.reason.stack) || e.reason)); });
+  })();
+</script>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
