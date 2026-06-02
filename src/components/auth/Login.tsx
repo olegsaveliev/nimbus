@@ -51,16 +51,6 @@ export function Login() {
     }
   };
 
-  const demo = async () => {
-    setBusy(true);
-    setErr("");
-    const { error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      setErr("Demo sign-in isn't enabled on this project.");
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="login">
       <form className="login-card glass" onSubmit={submit}>
@@ -115,9 +105,6 @@ export function Login() {
             </span>
           )}
         </div>
-        <button type="button" className="login-demo" onClick={demo} disabled={busy}>
-          Continue with a demo account →
-        </button>
       </form>
       <div className="login-foot">A glassy little task board</div>
     </div>
