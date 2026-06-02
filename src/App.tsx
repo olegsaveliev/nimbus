@@ -343,7 +343,11 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
         onLaneBy={(l: LaneBy) => updatePrefs({ laneBy: l })}
       />
 
-      {view === "board" ? (
+      {!data ? (
+        /* Board still loading — render an empty spacer (not CORE_COLUMNS) so custom
+           columns don't flicker in after the real data arrives on refresh. */
+        <div style={{ flex: 1 }} />
+      ) : view === "board" ? (
         <>
           <FilterBar
             catNames={catNames}
