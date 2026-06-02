@@ -30,19 +30,31 @@ export const TWEAK_DEFAULTS: Tweaks = {
   opacity: 0.42,
 };
 
+/** localStorage key holding the last-applied CSS vars, so the inline boot script
+ * in index.html can paint the right theme before React/network loads (no flash). */
+export const CSS_CACHE_KEY = "nimbus-css-cache";
+
 /** Apply a theme + tweaks to the document's CSS custom properties. */
 export function applyTheme(themeIndex: number, tweaks: Tweaks): void {
   const root = document.documentElement.style;
   const th = THEMES[themeIndex] || THEMES[DEFAULT_THEME];
-  root.setProperty("--g1", th.bg[0]);
-  root.setProperty("--g2", th.bg[1]);
-  root.setProperty("--g3", th.bg[2]);
-  root.setProperty("--ink", th.ink || "#2a2433");
-  root.setProperty("--muted", th.muted || "60,40,70");
-  root.setProperty("--surf", th.surf || "255,255,255");
+  const vars: Record<string, string> = {
+    "--g1": th.bg[0],
+    "--g2": th.bg[1],
+    "--g3": th.bg[2],
+    "--ink": th.ink || "#2a2433",
+    "--muted": th.muted || "60,40,70",
+    "--surf": th.surf || "255,255,255",
+    "--accent": tweaks.accent,
+    "--radius": tweaks.radius + "px",
+    "--glass-blur": tweaks.blur + "px",
+    "--glass-op": String(tweaks.opacity),
+  };
+  Object.entries(vars).forEach(([k, v]) => root.setProperty(k, v));
   document.documentElement.setAttribute("data-dark", th.dark ? "1" : "0");
-  root.setProperty("--accent", tweaks.accent);
-  root.setProperty("--radius", tweaks.radius + "px");
-  root.setProperty("--glass-blur", tweaks.blur + "px");
-  root.setProperty("--glass-op", String(tweaks.opacity));
+  try {
+    localStorage.setItem(CSS_CACHE_KEY, JSON.stringify({ ...vars, "data-dark": th.dark ? "1" : "0" }));
+  } catch {
+    /* ignore */
+  }
 }

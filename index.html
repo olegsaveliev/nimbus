@@ -7,6 +7,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+<script>
+  // Paint the saved theme before first render to avoid a flash of the default
+  // theme on refresh. Falls back to the Midnight default on a first-ever visit.
+  (function () {
+    try {
+      var c = JSON.parse(localStorage.getItem("nimbus-css-cache"));
+      if (!c) c = { "--g1": "#13111f", "--g2": "#211b38", "--g3": "#3a2f63", "--ink": "#ece9f7", "--muted": "188,182,214", "--surf": "122,112,158", "--accent": "#a78bfa", "--radius": "18px", "--glass-blur": "22px", "--glass-op": "0.42", "data-dark": "1" };
+      var r = document.documentElement;
+      Object.keys(c).forEach(function (k) {
+        if (k === "data-dark") r.setAttribute("data-dark", c[k]);
+        else r.style.setProperty(k, c[k]);
+      });
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
 <div class="bg"></div>
