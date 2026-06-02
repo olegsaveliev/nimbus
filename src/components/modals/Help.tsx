@@ -73,7 +73,7 @@ export function Help({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="help-sec">
-            <div className="sh">AI assistant <span style={{ fontWeight: 700, textTransform: "none", letterSpacing: 0 }}>(runs securely on the Nimbus server)</span></div>
+            <div className="sh">AI assistant <span style={{ fontWeight: 700, textTransform: "none", letterSpacing: 0 }}>(bring your own API key — add it in Settings)</span></div>
             <Item icon={<IconSpark />} title="Add with AI">The <b>✨ button</b> opens a box — paste a brain-dump, email, or notes and AI extracts clean tasks for you to review and add.</Item>
             <Item icon={<IconSpark />} title="Card assists"><b>Improve</b> rewrites the title + adds acceptance criteria, <b>Suggest details</b> fills priority/category/estimate, and <b>Suggest blockers</b> proposes dependencies.</Item>
             <Item icon={<IconSearchCmd s={15} />} title="Natural-language commands">In <kbd>⌘K</kbd>, type a request like <kbd>move everything overdue to today and bump to high</kbd> and pick <b>Ask AI to do this</b>.</Item>

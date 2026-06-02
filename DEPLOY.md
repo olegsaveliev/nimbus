@@ -5,9 +5,10 @@ Nimbus has **two** deploy targets:
 | Piece | Hosted on | What it is |
 |---|---|---|
 | Frontend (this Vite app) | **Vercel** | static SPA build (`dist/`) |
-| Database + Auth + AI proxy | **Supabase** | Postgres + RLS, Auth, the `ai` Edge Function |
+| Database + Auth | **Supabase** | Postgres + RLS, Auth |
+| AI | **BYOK (client-side)** | users paste their own Anthropic/OpenAI key into Settings |
 
-Vercel only serves static files — it does **not** run the database or the AI function. Those live on Supabase. You connect the two with environment variables.
+Vercel only serves static files — it does **not** run the database. That lives on Supabase. You connect the two with environment variables. AI is bring-your-own-key: there's no server-side AI to deploy.
 
 ---
 
@@ -35,14 +36,7 @@ Vercel only serves static files — it does **not** run the database or the AI f
 
 5. **Set the Site URL** — Authentication → URL Configuration → set **Site URL** to your Vercel domain (e.g. `https://nimbus.vercel.app`) and add it to **Redirect URLs**.
 
-6. **Deploy the AI proxy + its secret** (the Anthropic key lives only here, never in the browser):
-   ```bash
-   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-   # optional, to use a newer/cheaper model:
-   # supabase secrets set AI_MODEL=claude-haiku-4-5
-   supabase functions deploy ai
-   ```
-   The client calls this function with the logged-in user's JWT automatically (`verify_jwt = true` in `supabase/config.toml`).
+6. **AI: nothing to deploy.** AI is bring-your-own-key — after signing in, each user opens **Settings → AI provider** and pastes their own Anthropic (`sk-ant-…`) or OpenAI (`sk-…`) key. It's stored in that browser and sent only to the provider. (Usage is logged to the `ai_events` table so the Reports card works.)
 
 ---
 
@@ -71,14 +65,14 @@ Vercel only serves static files — it does **not** run the database or the AI f
 
 - The app should show the **login screen** (not the demo board). If you see seeded demo cards with no sign-in, your env vars didn't reach the build → re-check them and redeploy.
 - Create an account → you should get a freshly seeded starter board.
-- Open the **Brief** or a card's **Improve** → the AI should respond (confirms the Edge Function + secret are live). If AI says "isn't available", check `supabase functions logs ai` and that the secret is set.
+- Open **Settings → AI provider**, paste your Anthropic/OpenAI key, then try the **Brief** or a card's **Improve** → the AI should respond. If it says "isn't available", re-check the key in Settings.
 
 ---
 
 ## Notes & gotchas
 
 - **Demo mode only exists in `npm run dev`.** A production build with missing env vars now fails loudly instead of silently using localStorage (see `src/lib/supabase.ts`).
-- **CORS:** the `ai` function currently allows all origins (`Access-Control-Allow-Origin: *`). To lock it to your domain, edit the `CORS` headers in `supabase/functions/ai/index.ts` and redeploy.
-- **Anonymous/demo users** accumulate in `auth.users`. If you keep the demo button, periodically prune them (or disable Anonymous sign-ins for a stricter prod).
+- **BYOK keys are client-side.** Fine for personal use (your key, your browser). If you ever open Nimbus to other people, switch AI back to a server-side proxy so you're not asking strangers to paste keys into a shared app.
+- **Anonymous/demo users** accumulate in `auth.users`. If you enable the demo button, periodically prune them (or leave Anonymous sign-ins off for a stricter prod).
 - **Custom domain:** add it in Vercel → Domains, then update Supabase **Site URL / Redirect URLs** to match.
-- **Costs:** Vercel Hobby + Supabase Free tiers cover a personal deployment; the only metered external cost is Anthropic API usage (tracked in the Reports → AI usage card).
+- **Costs:** Vercel Hobby + Supabase Free tiers cover a personal deployment; the only metered external cost is your own Anthropic/OpenAI API usage (tracked in the Reports → AI usage card).

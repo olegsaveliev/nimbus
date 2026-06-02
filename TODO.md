@@ -2,29 +2,16 @@
 
 Things intentionally skipped for now. Safe to launch without these; revisit when convenient.
 
-## 🔒 Lock the AI function's CORS to our domain (optional, security hardening)
+## 🔑 AI is BYOK / client-side — revisit if going multi-user
 
-**Why:** the `ai` Edge Function currently allows calls from *any* website (`Access-Control-Allow-Origin: "*"`). The login requirement (`verify_jwt = true`) is the real protection, so this is defense-in-depth — it stops another website, opened in a logged-in user's browser, from quietly calling our AI endpoint (and burning Anthropic budget) using that user's session. Not urgent for a small/personal app.
+**Current:** AI calls Anthropic/OpenAI **directly from the browser** with a key the user pastes into Settings (stored in their localStorage). This is the right call for a personal/solo tool — simple, no server, no shared key.
 
-**How (≈5 min):**
-1. In [`supabase/functions/ai/index.ts`](supabase/functions/ai/index.ts), replace the hardcoded `"Access-Control-Allow-Origin": "*"` with an allowlist driven by an env var, e.g.:
-   ```ts
-   const ALLOWED = (Deno.env.get("ALLOWED_ORIGINS") || "").split(",").map(s => s.trim()).filter(Boolean);
-   const origin = req.headers.get("Origin") ?? "";
-   const allowOrigin = ALLOWED.includes(origin) ? origin : ALLOWED[0] || "";
-   const CORS = {
-     "Access-Control-Allow-Origin": allowOrigin,
-     "Vary": "Origin",
-     /* ...rest unchanged... */
-   };
-   ```
-2. Set the allowed origins (include the prod domain; add localhost only if the prod function is ever called from dev):
-   ```bash
-   supabase secrets set ALLOWED_ORIGINS="https://YOUR-DOMAIN.com,https://nimbus.vercel.app"
-   ```
-3. Redeploy: `supabase functions deploy ai`
+**If Nimbus ever opens to other people**, switch AI back to a **server-side proxy** so you're not asking strangers to paste API keys into a shared app, and so one key (yours) isn't exposed client-side. That means:
+- re-add a Supabase Edge Function (`supabase/functions/ai`) that holds the key as a secret and forwards to Anthropic,
+- point `src/services/ai.ts` at `supabase.functions.invoke("ai", …)` instead of `fetch`-ing the provider directly,
+- (and then the old "lock CORS to our domain" hardening becomes relevant again).
 
-**Caveat:** a single fixed origin will block Vercel **preview** deploys (`*-git-*.vercel.app`). If we want previews to hit the prod function, list them too — or just rely on dev mock mode for previews.
+Not needed while it's just you.
 
 ---
 
