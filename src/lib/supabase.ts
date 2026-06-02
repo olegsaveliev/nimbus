@@ -1,8 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { mockSupabase } from "./mockBackend";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// Defensive: env values occasionally arrive with a stray newline or a value
+// pasted twice (a common dashboard mistake). Trim and take the first token so a
+// malformed env can't produce an unresolvable hostname.
+const clean = (v: string | undefined) => v?.trim().split(/\s+/)[0] || undefined;
+const url = clean(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+const anonKey = clean(import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
 
 /** When Supabase isn't configured, fall back to a local in-memory mock so the UI
  * can be previewed without a backend — but ONLY in dev. In a production build a
