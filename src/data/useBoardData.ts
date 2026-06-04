@@ -10,11 +10,14 @@ import { todayIso } from "@/domain/dates";
 import { bumpToTop, newlyUnblocked } from "@/domain/deps";
 import { PRI_CYCLE } from "@/domain/priority";
 import { recurClone } from "@/domain/recurrence";
-import { CAT_PALETTE } from "@/domain/board";
+import { CAT_PALETTE, CORE_COLUMNS } from "@/domain/board";
 import type { Template } from "@/domain/templates";
 import * as repo from "./boardRepo";
 
 const uid = () => crypto.randomUUID();
+
+/** Done's signature green — reserved for the Done column, never reused. */
+const DONE_GREEN = CORE_COLUMNS.find((c) => c.key === "done")!.dot;
 
 export interface BoardActions {
   addTask: (status: string, text: string, pri: Priority | null, cat: string | null, due: string | null) => void;
@@ -397,7 +400,13 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
       const b = current();
       if (!b) return;
       const colKey = "col_" + uid();
-      const col = { key: colKey, name: "New stage", dot: CAT_PALETTE[b.columns.length % CAT_PALETTE.length], core: false };
+      // Pick the first palette color not already used by a column, so each new
+      // column gets a distinct underline. Green is reserved for Done, so it's
+      // excluded from the choices for any other column.
+      const palette = CAT_PALETTE.filter((c) => c !== DONE_GREEN);
+      const used = new Set(b.columns.map((c) => c.dot));
+      const dot = palette.find((c) => !used.has(c)) || palette[b.columns.length % palette.length];
+      const col = { key: colKey, name: "New stage", dot, core: false };
       const di = b.columns.findIndex((c) => c.key === "done");
       const cols = b.columns.slice();
       if (di < 0) cols.push(col);
