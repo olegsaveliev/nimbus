@@ -64,8 +64,7 @@ export function Column(props: Props) {
         }
       }}
     >
-      <div className="col-head">
-        <span className="col-dot" style={{ background: col.dot }}></span>
+      <div className="col-head" style={{ "--col-accent": col.dot } as React.CSSProperties}>
         {renaming ? (
           <input
             ref={nameRef}
