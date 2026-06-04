@@ -5,6 +5,7 @@ import { wouldCycle } from "@/domain/deps";
 import { CORE_COLUMNS } from "@/domain/board";
 import { IconChat, IconInfo, IconLink, IconPlus, IconRepeat, IconSend, IconSpark, IconTick, IconWand } from "@/components/icons/Icons";
 import { Overlay } from "@/components/common/Overlay";
+import { LiveInput, LiveTextarea } from "@/components/common/LiveField";
 import { avColor, initials } from "@/domain/board";
 import { aiComplete, aiJSON } from "@/services/ai";
 
@@ -162,7 +163,7 @@ export function Detail({ t, cats, columns, allTasks, onOpen, onClose, onUpdate, 
             <button className="d-close" onClick={onClose} aria-label="Close">×</button>
           </div>
 
-          <input className="d-title" value={t.text} placeholder="Name the task…" onChange={(e) => onUpdate(t.id, { text: e.target.value })} />
+          <LiveInput className="d-title" value={t.text} placeholder="Name the task…" onChange={(v) => onUpdate(t.id, { text: v })} />
 
           <div className="ai-bar">
             <button onClick={improveTask} disabled={!!aiBusy}><IconSpark />{aiBusy === "improve" ? "Improving…" : "Improve"}</button>
@@ -181,7 +182,7 @@ export function Detail({ t, cats, columns, allTasks, onOpen, onClose, onUpdate, 
           <div className="field">
             <label>Details</label>
             <span className="hint">What does “done” look like? Add context, links, or the steps to get there.</span>
-            <textarea rows={4} value={t.desc} placeholder="e.g. Pull the latest figures, update slides 3–5, send to Maya for sign-off…" onChange={(e) => onUpdate(t.id, { desc: e.target.value })} />
+            <LiveTextarea rows={4} value={t.desc} placeholder="e.g. Pull the latest figures, update slides 3–5, send to Maya for sign-off…" onChange={(v) => onUpdate(t.id, { desc: v })} />
           </div>
 
           <div className="field">

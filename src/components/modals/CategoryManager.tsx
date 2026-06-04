@@ -3,6 +3,7 @@ import type { Category } from "@/types";
 import { CAT_PALETTE } from "@/domain/board";
 import { IconPlus, IconTag, IconTrash } from "@/components/icons/Icons";
 import { Overlay } from "@/components/common/Overlay";
+import { LiveInput } from "@/components/common/LiveField";
 
 interface Props {
   cats: Category[];
@@ -37,7 +38,7 @@ export function CategoryManager({ cats, counts, onClose, onRename, onRecolor, on
                     </div>
                   )}
                 </div>
-                <input value={c.name} onChange={(e) => onRename(c.id, e.target.value)} placeholder="List name" maxLength={20} />
+                <LiveInput value={c.name} onChange={(v) => onRename(c.id, v)} placeholder="List name" maxLength={20} />
                 <span className="cm-count">{counts[c.name] || 0} open</span>
                 <button className="cm-del" onClick={() => onDelete(c.id)} disabled={cats.length <= 1} aria-label="Delete list"><IconTrash /></button>
               </div>
