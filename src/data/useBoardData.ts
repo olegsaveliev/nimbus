@@ -281,6 +281,7 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
       if (beforeId === dragId) beforeId = disp[idx + 1] ? disp[idx + 1].id : null;
 
       const enteringDone = colKey === "done" && dragged.status !== "done";
+      const colChanged = dragged.status !== colKey;
       const moved: Task = {
         ...dragged,
         status: colKey,
@@ -316,6 +317,12 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
 
       const { renum, changed } = renumber(b.tasks, rest);
       setBoard(() => ({ ...b, tasks: renum }));
+      // updateTaskPositions only writes position + status; persist the
+      // completion/start timestamps separately when the column changed, else a
+      // drag into Done leaves completed_at null in the DB (lost on refresh).
+      if (colChanged) {
+        persist(repo.updateTaskRow(dragId, { completed_at: moved.completedAt || null, started_at: moved.startedAt || null }));
+      }
       if (clone) {
         const cloneRow = taskInsertRow(clone);
         persist(repo.insertTaskRow(cloneRow).then(() => (changed.length ? repo.updateTaskPositions(changed) : undefined)));
