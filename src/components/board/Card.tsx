@@ -3,6 +3,7 @@ import { fmtDue } from "@/domain/dates";
 import { depsBlockedCount } from "@/domain/deps";
 import { fmtEst } from "@/domain/estimate";
 import { REPEAT_LABEL } from "@/domain/recurrence";
+import { useUI } from "@/state/uiStore";
 import { IconCal, IconChat, IconCheckSq, IconClock, IconLink, IconNote, IconRepeat, IconTrash } from "@/components/icons/Icons";
 
 interface CardProps {
@@ -19,6 +20,7 @@ interface CardProps {
 }
 
 export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onDelete, onCyclePri, onOpen, onItemDragOver }: CardProps) {
+  const compact = useUI((s) => s.compact);
   const due = fmtDue(t.due);
   const done = t.status === "done";
   const blockedN = depsBlockedCount(t, allTasks || []);
@@ -30,7 +32,7 @@ export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onD
 
   return (
     <div
-      className={"kcard" + (done ? " done" : "") + (dragging ? " dragging" : "") + (flash ? " just-ready" : "")}
+      className={"kcard" + (compact ? " compact pc-" + t.pri : "") + (done ? " done" : "") + (dragging ? " dragging" : "") + (flash ? " just-ready" : "")}
       draggable
       onDragStart={(e) => onDragStart(e, t.id)}
       onDragEnd={onDragEnd}
@@ -48,6 +50,7 @@ export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onD
           <IconTrash />
         </button>
       </div>
+      {!compact && (
       <div className="kc-meta">
         <span className={"pri-tag " + t.pri} onClick={(e) => { e.stopPropagation(); onCyclePri(t.id); }} title="Click to change priority">
           <i></i>
@@ -100,6 +103,7 @@ export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onD
         )}
         <span className="cat-tag">{t.cat}</span>
       </div>
+      )}
     </div>
   );
 }

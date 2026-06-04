@@ -14,6 +14,7 @@ import {
   IconHelp,
   IconPause,
   IconPlay,
+  IconRows,
   IconSearch,
   IconSearchCmd,
   IconSpark,
@@ -44,6 +45,8 @@ export function TopBar(props: Props) {
   const openModal = useUI((s) => s.openModal);
   const query = useUI((s) => s.query);
   const setQuery = useUI((s) => s.setQuery);
+  const compact = useUI((s) => s.compact);
+  const toggleCompact = useUI((s) => s.toggleCompact);
 
   const pomoRun = useUI((s) => s.pomoRun);
   const pomoSecs = useUI((s) => s.pomoSecs);
@@ -119,6 +122,18 @@ export function TopBar(props: Props) {
             <button className={props.laneBy === "category" ? "on" : ""} onClick={() => props.onLaneBy("category")}>List</button>
             <button className={props.laneBy === "priority" ? "on" : ""} onClick={() => props.onLaneBy("priority")}>Priority</button>
           </div>
+        )}
+
+        {view === "board" && (
+          <button
+            className={"compact-toggle" + (compact ? " on" : "")}
+            onClick={toggleCompact}
+            title="Compact cards — title only (press C)"
+            aria-pressed={compact}
+          >
+            <IconRows s={14} />
+            Compact
+          </button>
         )}
 
         <span className="tb-spring"></span>

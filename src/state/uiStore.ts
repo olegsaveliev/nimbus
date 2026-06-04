@@ -19,6 +19,10 @@ interface UIState {
   view: View;
   setView: (v: View) => void;
 
+  /** Compact board density: collapse cards to title + priority dot. Persisted. */
+  compact: boolean;
+  toggleCompact: () => void;
+
   filter: string;
   setFilter: (f: string) => void;
   query: string;
@@ -68,9 +72,30 @@ const noModals: Record<ModalName, boolean> = {
   addWithAI: false,
 };
 
+const COMPACT_KEY = "nimbus-compact";
+const initialCompact = (() => {
+  try {
+    return localStorage.getItem(COMPACT_KEY) === "1";
+  } catch {
+    return false;
+  }
+})();
+
 export const useUI = create<UIState>((set) => ({
   view: "board",
   setView: (view) => set({ view }),
+
+  compact: initialCompact,
+  toggleCompact: () =>
+    set((s) => {
+      const compact = !s.compact;
+      try {
+        localStorage.setItem(COMPACT_KEY, compact ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return { compact };
+    }),
 
   filter: "All",
   setFilter: (filter) => set({ filter }),

@@ -13,7 +13,7 @@ import { celebrate } from "@/lib/confetti";
 import { qk } from "@/lib/queryClient";
 import { useUI } from "@/state/uiStore";
 import { usePomodoro } from "@/hooks/usePomodoro";
-import { useCommandPaletteHotkey } from "@/hooks/useHotkeys";
+import { useHotkeys } from "@/hooks/useHotkeys";
 import { usePreferences } from "@/data/preferences";
 import { ensureStarterBoard, useBoards, useCreateBoard, useDeleteBoard, useRenameBoard } from "@/data/boards";
 import { useBoardData } from "@/data/useBoardData";
@@ -66,7 +66,7 @@ export function App() {
   const setToast = useUI((s) => s.setToast);
 
   usePomodoro();
-  useCommandPaletteHotkey();
+  useHotkeys();
 
   // apply theme + tweaks to CSS vars — but only once real preferences have loaded,
   // so we don't briefly overwrite the inline boot script's theme with the defaults
