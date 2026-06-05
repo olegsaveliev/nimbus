@@ -394,9 +394,17 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
           cats={cats}
           columns={columns}
           allTasks={tasks}
+          boards={boards}
+          boardId={activeBoardId}
           onOpen={openTask}
           onClose={() => setOpenId(null)}
           onUpdate={actions.updateTask}
+          onMoveBoard={(taskId, targetId) => {
+            actions.moveTaskToBoard(taskId, targetId);
+            const tb = boards.find((b) => b.id === targetId);
+            showToast(`Moved to "${tb?.name ?? "board"}" ✨`);
+            setOpenId(null);
+          }}
           onAddComment={actions.addComment}
         />
       )}

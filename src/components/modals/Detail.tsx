@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { Category, Column, Priority, Repeat, Task } from "@/types";
+import type { Board, Category, Column, Priority, Repeat, Task } from "@/types";
 import { EST_OPTIONS } from "@/domain/estimate";
 import { wouldCycle } from "@/domain/deps";
 import { CORE_COLUMNS } from "@/domain/board";
-import { IconChat, IconInfo, IconLink, IconPlus, IconRepeat, IconSend, IconSpark, IconTick, IconWand } from "@/components/icons/Icons";
+import { IconBoard, IconChat, IconChevDown, IconInfo, IconLink, IconPlus, IconRepeat, IconSend, IconSpark, IconTick, IconWand } from "@/components/icons/Icons";
 import { Overlay } from "@/components/common/Overlay";
 import { LiveInput, LiveTextarea } from "@/components/common/LiveField";
 import { avColor, initials } from "@/domain/board";
@@ -16,14 +16,18 @@ interface Props {
   cats: Category[];
   columns: Column[];
   allTasks: Task[];
+  boards: Board[];
+  boardId: string | null;
   onOpen: (id: string) => void;
   onClose: () => void;
   onUpdate: (id: string, patch: Partial<Task>) => void;
+  onMoveBoard: (taskId: string, targetBoardId: string) => void;
   onAddComment: (id: string, text: string) => void;
 }
 
-export function Detail({ t, cats, columns, allTasks, onOpen, onClose, onUpdate, onAddComment }: Props) {
+export function Detail({ t, cats, columns, allTasks, boards, boardId, onOpen, onClose, onUpdate, onMoveBoard, onAddComment }: Props) {
   const [draft, setDraft] = useState("");
+  const [moveOpen, setMoveOpen] = useState(false);
   const [depPick, setDepPick] = useState(false);
   const [subDraft, setSubDraft] = useState("");
   const [breaking, setBreaking] = useState(false);
@@ -160,6 +164,22 @@ export function Detail({ t, cats, columns, allTasks, onOpen, onClose, onUpdate, 
                 </button>
               ))}
             </div>
+            {boards && boards.length > 1 && (
+              <div className="movebrd">
+                <button className="movebrd-btn" onClick={() => setMoveOpen((o) => !o)}><IconBoard s={14} />Move<IconChevDown s={12} /></button>
+                {moveOpen && (
+                  <>
+                    <div className="movebrd-scrim" onClick={() => setMoveOpen(false)}></div>
+                    <div className="movebrd-menu">
+                      <div className="mb-lbl">Move to board</div>
+                      {boards.filter((b) => b.id !== boardId).map((b) => (
+                        <button key={b.id} className="mb-opt" onClick={() => { setMoveOpen(false); onMoveBoard(t.id, b.id); }}><IconBoard s={13} />{b.name}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             <button className="d-close" onClick={onClose} aria-label="Close">×</button>
           </div>
 

@@ -27,6 +27,7 @@ export interface BoardActions {
   del: (id: string) => void;
   cyclePri: (id: string) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
+  moveTaskToBoard: (id: string, targetBoardId: string) => void;
   addComment: (id: string, text: string) => void;
   reorder: (colKey: string, idx: number, dragId: string) => void;
   setTodoOrder: (orderedIds: string[]) => void;
@@ -451,8 +452,34 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
       persist(repo.deleteColumnByKey(boardId!, colKey));
     };
 
+    const moveTaskToBoard: BoardActions["moveTaskToBoard"] = (id, targetBoardId) => {
+      const b = current();
+      if (!b || !boardId || targetBoardId === boardId) return;
+      const task = b.tasks.find((x) => x.id === id);
+      if (!task) return;
+      // Land in a matching column on the target board: keep the status if it's a
+      // core column (present on every board); otherwise fall back to To Do.
+      const matchStatus = CORE_COLUMNS.some((c) => c.key === task.status) ? task.status : CORE_COLUMNS[0].key;
+      // Other cards on THIS board that depend on the moved task — strip the link
+      // (the dependency can't span boards).
+      const dependents = b.tasks.filter((x) => x.id !== id && (x.deps || []).includes(id));
+      // Optimistic: drop it from this board's cache and clear the dangling deps.
+      setBoard((bd) => ({
+        ...bd,
+        tasks: bd.tasks
+          .filter((x) => x.id !== id)
+          .map((x) => (dependents.some((d) => d.id === x.id) ? { ...x, deps: (x.deps || []).filter((d) => d !== id) } : x)),
+      }));
+      // Persist: relocate the row, clear its (board-scoped) category and its deps.
+      persist(repo.updateTaskRow(id, { board_id: targetBoardId, status: matchStatus, category_id: null, position: 0 }));
+      persist(repo.reconcileDeps(id, []));
+      dependents.forEach((d) => persist(repo.reconcileDeps(d.id, (d.deps || []).filter((x) => x !== id))));
+      // The target board isn't mounted — drop its cache so it refetches on switch.
+      queryClient.invalidateQueries({ queryKey: qk.board(targetBoardId) });
+    };
+
     return {
-      addTask, addTaskObj, addBlankTask, addFromTemplate, del, cyclePri, updateTask, addComment,
+      addTask, addTaskObj, addBlankTask, addFromTemplate, del, cyclePri, updateTask, moveTaskToBoard, addComment,
       reorder, setTodoOrder, renameCat, recolorCat, addCat, deleteCat, addColumn, moveColumn, renameColumn, deleteColumn,
     };
   }, [boardId, queryClient, onCelebrate, onFlash, defaultCat]);
