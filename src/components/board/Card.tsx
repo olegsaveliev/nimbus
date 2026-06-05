@@ -54,7 +54,7 @@ export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onD
       <div className="kc-meta">
         <span className={"pri-tag " + t.pri} onClick={(e) => { e.stopPropagation(); onCyclePri(t.id); }} title="Click to change priority">
           <i></i>
-          {t.pri === "med" ? "medium" : t.pri}
+          {t.pri === "med" ? "med" : t.pri}
         </span>
         {due && (
           <span className={"due" + (due.over && !done ? " over" : "")}>
