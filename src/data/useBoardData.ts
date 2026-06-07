@@ -258,14 +258,13 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
         onCelebrate?.();
       }
 
-      // Keep card-sourced talking points in sync with a rename: if the title
-      // changed, update any linked point whose text still matches the old title
-      // (leave independently-edited points untouched).
+      // Card-sourced talking points are bound to their card's title: when the
+      // title changes, mirror it onto any point linked to this card.
       const renamePoints: Array<{ id: string; text: string }> = [];
       let nextPoints = b.points;
       if (typeof patch.text === "string" && patch.text !== was.text) {
         nextPoints = (b.points ?? []).map((pt) => {
-          if (pt.taskId === id && pt.text === was.text) {
+          if (pt.taskId === id) {
             renamePoints.push({ id: pt.id, text: patch.text! });
             return { ...pt, text: patch.text! };
           }
@@ -554,8 +553,19 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
 
     const editPoint: BoardActions["editPoint"] = (id, text) => {
       const v = text.replace(/\s+/g, " ").trim();
-      setBoard((bd) => ({ ...bd, points: (bd.points ?? []).map((p) => (p.id === id ? { ...p, text: v } : p)) }));
+      const b = current();
+      const pt = (b?.points ?? []).find((x) => x.id === id);
+      // Two-way binding: if this point is linked to a card that still exists,
+      // rename that card too (direct cache+persist, not via updateTask, to avoid
+      // a sync loop back into the point).
+      const linkedTaskId = pt?.taskId && b?.tasks.some((t) => t.id === pt.taskId) ? pt.taskId : null;
+      setBoard((bd) => ({
+        ...bd,
+        points: (bd.points ?? []).map((p) => (p.id === id ? { ...p, text: v } : p)),
+        tasks: linkedTaskId ? bd.tasks.map((t) => (t.id === linkedTaskId ? { ...t, text: v } : t)) : bd.tasks,
+      }));
       persist(repo.updateTalkingPointRow(id, { text: v }));
+      if (linkedTaskId) persist(repo.updateTaskRow(linkedTaskId, { text: v }));
     };
 
     const deletePoint: BoardActions["deletePoint"] = (id) => {
