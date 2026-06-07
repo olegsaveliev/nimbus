@@ -16,6 +16,9 @@ export const DEFAULT_CATS: Category[] = [
 
 export const CAT_PALETTE = ["#7c5cff", "#ff6b9d", "#22d3ee", "#38c172", "#fb923c", "#f0506e", "#f5a623", "#a78bfa"];
 
+/** Maximum number of columns a board may have (incl. the core To Do/In Progress/Done). */
+export const MAX_COLUMNS = 4;
+
 /* avatar color from name */
 const AV_COLORS = ["#7c5cff", "#ff6b9d", "#f5a623", "#22d3ee", "#38c172", "#fb7185"];
 export const avColor = (name: string): string =>

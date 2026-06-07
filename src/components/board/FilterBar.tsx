@@ -8,9 +8,10 @@ interface Props {
   onManage: () => void;
   onAddTask: () => void;
   onAddColumn: () => void;
+  canAddColumn: boolean;
 }
 
-export function FilterBar({ catNames, counts, filter, onFilter, onManage, onAddTask, onAddColumn }: Props) {
+export function FilterBar({ catNames, counts, filter, onFilter, onManage, onAddTask, onAddColumn, canAddColumn }: Props) {
   return (
     <div className="filterbar">
       {["All", ...catNames].map((c) => (
@@ -28,7 +29,13 @@ export function FilterBar({ catNames, counts, filter, onFilter, onManage, onAddT
         <IconPlus />
         Task
       </button>
-      <button className="add-col-sm" onClick={onAddColumn} title="Add a column" aria-label="Add a column">
+      <button
+        className="add-col-sm"
+        onClick={onAddColumn}
+        disabled={!canAddColumn}
+        title={canAddColumn ? "Add a column" : "Column limit reached"}
+        aria-label="Add a column"
+      >
         <IconPlus />
         Column
       </button>

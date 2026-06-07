@@ -10,7 +10,7 @@ import { todayIso } from "@/domain/dates";
 import { bumpToTop, newlyUnblocked } from "@/domain/deps";
 import { PRI_CYCLE } from "@/domain/priority";
 import { recurClone } from "@/domain/recurrence";
-import { CAT_PALETTE, CORE_COLUMNS } from "@/domain/board";
+import { CAT_PALETTE, CORE_COLUMNS, MAX_COLUMNS } from "@/domain/board";
 import type { Template } from "@/domain/templates";
 import * as repo from "./boardRepo";
 
@@ -400,6 +400,7 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
     const addColumn: BoardActions["addColumn"] = () => {
       const b = current();
       if (!b) return;
+      if (b.columns.length >= MAX_COLUMNS) return;
       const colKey = "col_" + uid();
       // Pick the first palette color not already used by a column, so each new
       // column gets a distinct underline. Green is reserved for Done, so it's

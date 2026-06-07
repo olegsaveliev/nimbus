@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { LaneBy, Tweaks } from "@/types";
 import { todayIso } from "@/domain/dates";
 import { depsBlockedCount } from "@/domain/deps";
-import { CORE_COLUMNS } from "@/domain/board";
+import { CORE_COLUMNS, MAX_COLUMNS } from "@/domain/board";
 import { boardMarkdown } from "@/domain/markdown";
 import { parseQuickAdd } from "@/domain/quickAdd";
 import { currentStreak } from "@/domain/streak";
@@ -357,6 +357,7 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
             onManage={() => openModal("manageCats")}
             onAddTask={addBlankTask}
             onAddColumn={actions.addColumn}
+            canAddColumn={columns.length < MAX_COLUMNS}
           />
           <Board
             columns={columns}
