@@ -24,6 +24,7 @@ import { FilterBar } from "@/components/board/FilterBar";
 import { Board } from "@/components/board/Board";
 import { CalendarView } from "@/components/views/CalendarView";
 import { Reports } from "@/components/views/Reports";
+import { WishlistView } from "@/components/views/WishlistView";
 import { Detail } from "@/components/modals/Detail";
 import { CategoryManager } from "@/components/modals/CategoryManager";
 import { DailyBrief } from "@/components/modals/DailyBrief";
@@ -313,6 +314,19 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
       /* ignore */
     }
   };
+
+  // Wishlist is a self-contained top-level space with its own two-column shell;
+  // render it instead of the tasks stage (the tasks view is left fully intact).
+  // Theme uses the same global preferences system as the rest of the app.
+  if (view === "wishlist") {
+    return (
+      <WishlistView
+        theme={prefs.theme}
+        onSelectTheme={(i) => updatePrefs({ theme: i, tweaks: { ...prefs.tweaks, accent: THEMES[i].accent } })}
+        onBackToTasks={() => setView("board")}
+      />
+    );
+  }
 
   const openTaskObj = openId != null ? tasks.find((x) => x.id === openId) : undefined;
 

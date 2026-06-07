@@ -8,7 +8,12 @@
 export type Priority = "high" | "med" | "low";
 export type Repeat = "none" | "daily" | "weekdays" | "weekly";
 export type LaneBy = "none" | "category" | "priority";
-export type View = "board" | "calendar" | "reports";
+export type View = "board" | "calendar" | "reports" | "wishlist";
+
+/** A wish's kind: something to buy, a goal to achieve, or an experience to have. */
+export type WishType = "buy" | "goal" | "exp";
+/** Lifecycle stage; drives the self-sorting feed buckets. */
+export type WishStage = "wishing" | "saving" | "ready" | "got";
 
 export interface Subtask {
   id: string;
@@ -81,6 +86,28 @@ export interface TalkingPoint {
   /** "Discussed". */
   done: boolean;
   /** Manual ordering within the list. */
+  position: number;
+}
+
+/** A single wish in the per-user Wishlist space. Money is tracked toward each
+ * one; the stage + saved/price ratio decide which feed bucket it lands in. */
+export interface Wish {
+  id: string;
+  title: string;
+  type: WishType;
+  /** Goal cost. null = "no price yet". */
+  price: number | null;
+  /** Amount saved toward the price so far. */
+  saved: number;
+  pri: Priority;
+  /** Store / source ("—" or "" treated as empty). */
+  where: string;
+  link: string;
+  note: string;
+  /** Freeform target date, e.g. "Oct 2026". */
+  target: string;
+  stage: WishStage;
+  /** Manual ordering (newest captured first). */
   position: number;
 }
 

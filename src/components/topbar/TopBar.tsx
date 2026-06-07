@@ -10,7 +10,9 @@ import {
   IconCopy,
   IconFlame,
   IconFlow,
+  IconCheckSq,
   IconGear,
+  IconHeart,
   IconHelp,
   IconPause,
   IconPlay,
@@ -84,6 +86,17 @@ export function TopBar(props: Props) {
           </div>
         </div>
 
+        <div className="spaceseg" title="Switch space">
+          <button className={view === "wishlist" ? "" : "on"} onClick={() => setView("board")}>
+            <IconCheckSq s={13} />
+            Tasks
+          </button>
+          <button className={view === "wishlist" ? "on" : ""} onClick={() => setView("wishlist")}>
+            <IconHeart s={13} />
+            Wishlist
+          </button>
+        </div>
+
         <span className="tb-spring"></span>
 
         <button className="tp-trigger" onClick={() => openModal("talkingPoints")} title="Open talking points">
@@ -106,6 +119,7 @@ export function TopBar(props: Props) {
           </button>
         )}
         <div className="tb-icons">
+          <button className="help-btn" onClick={() => setView("wishlist")} title="Open Wishlist" aria-label="Open Wishlist"><IconHeart s={16} /></button>
           <button className="help-btn" onClick={() => openModal("addWithAI")} title="Add with AI" aria-label="Add with AI"><IconSpark /></button>
           <button className="help-btn" onClick={() => openModal("templates")} title="New from template" aria-label="New from template"><IconCopy /></button>
           <button className="help-btn" onClick={() => openModal("focus")} title="Focus mode" aria-label="Focus"><IconTarget s={16} /></button>

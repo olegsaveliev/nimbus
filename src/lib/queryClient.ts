@@ -15,4 +15,5 @@ export const qk = {
   board: (id: string) => ["board", id] as const,
   preferences: ["preferences"] as const,
   aiUsage: ["aiUsage"] as const,
+  wishes: ["wishes"] as const,
 };
