@@ -1,7 +1,7 @@
 /* Right-side detail drawer for a wish. Slides in over a blurred scrim (reusing
  * the shared Overlay for Esc / backdrop close). Everything is editable inline
  * and patches immediately. */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { deriveStage, fmt$, PRI, savedPct, STAGES, TYPES } from "@/domain/wishlist";
 import type { Wish } from "@/types";
 import { Overlay } from "@/components/common/Overlay";
@@ -20,6 +20,47 @@ interface Props {
 
 export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
   const [custom, setCustom] = useState("");
+  // Text fields are controlled by *local* state, then propagated to the cache via
+  // onPatch. Binding value directly to the cache-derived `item` made the caret
+  // jump to the end on every keystroke: React Query notifies asynchronously, so
+  // the re-render misses the keystroke's event and React restores the field to
+  // its last-rendered value. Local state updates synchronously and avoids that.
+  const [draft, setDraft] = useState(() => ({
+    title: item.title,
+    where: item.where === "—" ? "" : item.where,
+    target: item.target,
+    note: item.note,
+    // kept as a raw string so partial decimals (e.g. "12.") survive typing
+    price: item.price != null ? String(item.price) : "",
+  }));
+  // Re-seed only when a *different* wish opens — not on every cache update, so
+  // in-progress typing stays locally owned.
+  const id = item.id;
+  useEffect(() => {
+    setDraft({
+      title: item.title,
+      where: item.where === "—" ? "" : item.where,
+      target: item.target,
+      note: item.note,
+      price: item.price != null ? String(item.price) : "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const setText = (key: "title" | "where" | "target" | "note", v: string) => {
+    setDraft((p) => ({ ...p, [key]: v }));
+    onPatch(item.id, { [key]: v } as Partial<Wish>);
+  };
+  const setPrice = (raw: string) => {
+    const v = raw.replace(/[^\d.]/g, "");
+    setDraft((p) => ({ ...p, price: v }));
+    const n = parseFloat(v);
+    const price = v && !isNaN(n) ? n : null;
+    // Re-derive the stage so a price change can't leave the wish in a bucket its
+    // money no longer matches (e.g. Ready but underfunded).
+    onPatch(item.id, { price, stage: deriveStage(item.saved, price, item.stage) });
+  };
+
   const t = TYPES[item.type];
   const TypeIcon = TYPE_ICON[t.ic];
   const pct = savedPct(item.saved, item.price);
@@ -40,8 +81,8 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
         <div className="wl-drawer-body">
           <input
             className="wl-drawer-title"
-            value={item.title}
-            onChange={(e) => onPatch(item.id, { title: e.target.value })}
+            value={draft.title}
+            onChange={(e) => setText("title", e.target.value)}
             placeholder="Name this wish…"
             aria-label="Title"
           />
@@ -72,11 +113,11 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
             </label>
             <label className="wl-f">
               <span>Where</span>
-              <input value={item.where === "—" ? "" : item.where} onChange={(e) => onPatch(item.id, { where: e.target.value })} placeholder="Store or source" />
+              <input value={draft.where} onChange={(e) => setText("where", e.target.value)} placeholder="Store or source" />
             </label>
             <label className="wl-f">
               <span>Target date</span>
-              <input value={item.target} onChange={(e) => onPatch(item.id, { target: e.target.value })} placeholder="e.g. Oct 2026" />
+              <input value={draft.target} onChange={(e) => setText("target", e.target.value)} placeholder="e.g. Oct 2026" />
             </label>
           </div>
 
@@ -91,15 +132,8 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
               <div className="wl-price-in">
                 <b>$</b>
                 <input
-                  value={item.price ?? ""}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^\d.]/g, "");
-                    const n = parseFloat(v);
-                    const price = v && !isNaN(n) ? n : null;
-                    // Re-derive the stage so a price change can't leave the wish in
-                    // a bucket its money no longer matches (e.g. Ready but underfunded).
-                    onPatch(item.id, { price, stage: deriveStage(item.saved, price, item.stage) });
-                  }}
+                  value={draft.price}
+                  onChange={(e) => setPrice(e.target.value)}
                   placeholder="0"
                   inputMode="decimal"
                   aria-label="Price"
@@ -127,7 +161,7 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
 
           <label className="wl-f">
             <span>Why I want it</span>
-            <textarea className="wl-note" value={item.note} onChange={(e) => onPatch(item.id, { note: e.target.value })} placeholder="Add a note…" rows={3} />
+            <textarea className="wl-note" value={draft.note} onChange={(e) => setText("note", e.target.value)} placeholder="Add a note…" rows={3} />
           </label>
 
           <div className="wl-stage-field">
