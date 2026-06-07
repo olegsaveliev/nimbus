@@ -1270,10 +1270,12 @@ body {
 .wl-row-money b { font-size: 13px; font-weight: 800; color: var(--ink); }
 .wl-row-gotlbl { width: 150px; flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; color: #1f8f54; }
 .wl-row-noprice { width: 150px; flex: none; font-size: 11.5px; font-weight: 700; color: rgba(var(--muted),0.4); font-style: italic; }
-.wl-row-pri { display: inline-flex; align-items: center; gap: 5px; flex: none; font-family: inherit; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; border: none; padding: 5px 11px 5px 8px; border-radius: 999px; cursor: pointer; transition: filter 0.14s; white-space: nowrap; }
+/* Fixed-width priority + action columns so the progress column lands in the same
+   place on every row (otherwise the variable pill/button widths shift it). */
+.wl-row-pri { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: none; width: 104px; font-family: inherit; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; border: none; padding: 5px 11px 5px 8px; border-radius: 999px; cursor: pointer; transition: filter 0.14s; white-space: nowrap; }
 .wl-row-pri:hover { filter: brightness(0.96); }
 .wl-row-pri i { width: 6px; height: 6px; border-radius: 50%; }
-.wl-row-acts { display: flex; align-items: center; gap: 6px; flex: none; }
+.wl-row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex: none; width: 140px; }
 .wl-act { font-family: inherit; font-size: 12px; font-weight: 800; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, rgba(var(--surf),0.4)); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.14s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .wl-act:hover { background: color-mix(in srgb, var(--accent) 22%, rgba(var(--surf),0.4)); }
 .wl-act.got { color: #fff; background: var(--accent); border-color: transparent; box-shadow: 0 6px 14px -7px var(--accent); }
