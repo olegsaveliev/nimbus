@@ -258,13 +258,29 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
         onCelebrate?.();
       }
 
+      // Keep card-sourced talking points in sync with a rename: if the title
+      // changed, update any linked point whose text still matches the old title
+      // (leave independently-edited points untouched).
+      const renamePoints: Array<{ id: string; text: string }> = [];
+      let nextPoints = b.points;
+      if (typeof patch.text === "string" && patch.text !== was.text) {
+        nextPoints = (b.points ?? []).map((pt) => {
+          if (pt.taskId === id && pt.text === was.text) {
+            renamePoints.push({ id: pt.id, text: patch.text! });
+            return { ...pt, text: patch.text! };
+          }
+          return pt;
+        });
+      }
+
       // commit cache (renumber so positions reflect any bump/clone)
       const { renum, changed } = renumber(b.tasks, next);
-      setBoard(() => ({ ...b, tasks: renum }));
+      setBoard(() => ({ ...b, tasks: renum, points: nextPoints }));
 
       // persist scalar field changes
       const row = scalarPatchRow(p);
       if (Object.keys(row).length) persist(repo.updateTaskRow(id, row));
+      renamePoints.forEach((u) => persist(repo.updateTalkingPointRow(u.id, { text: u.text })));
       if ("subtasks" in patch && patch.subtasks) persist(repo.reconcileSubtasks(id, patch.subtasks));
       if ("deps" in patch && patch.deps) persist(repo.reconcileDeps(id, patch.deps));
       // insert the recurrence clone first, THEN persist positions (chained to avoid a race)
