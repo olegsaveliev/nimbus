@@ -162,11 +162,16 @@ export function TalkingPoints({
                     <div className="tp-main">
                       <Editable value={p.text} done={p.done} onCommit={(txt) => onEdit(p.id, txt)} />
                       {src ? (
-                        <span className="tp-src" onClick={() => onJump(src.id)} title="Jump to card">
-                          <span className="tp-cdot" style={{ background: catColor(src.cat) }}></span>
-                          <IconLink s={11} />
-                          {src.text}
-                        </span>
+                        // Only show the source chip when it adds info beyond the title
+                        // (e.g. the card was renamed). When it just repeats the point
+                        // text, keep the row to a single title line.
+                        src.text.trim() !== p.text.trim() && (
+                          <span className="tp-src" onClick={() => onJump(src.id)} title="Jump to card">
+                            <span className="tp-cdot" style={{ background: catColor(src.cat) }}></span>
+                            <IconLink s={11} />
+                            {src.text}
+                          </span>
+                        )
                       ) : (
                         <button className="tp-make" onClick={() => onMakeTask(p.id)} title="Create a task on the board from this point">
                           <IconTicket s={12} /> Make a task
