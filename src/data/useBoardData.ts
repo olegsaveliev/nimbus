@@ -582,8 +582,10 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
         tasks: [t, ...bd.tasks],
         points: (bd.points ?? []).map((p) => (p.id === id ? { ...p, taskId: t.id } : p)),
       }));
-      persist(repo.insertTaskRow(taskInsertRow(t)));
-      persist(repo.updateTalkingPointRow(id, { task_id: t.id }));
+      // Insert the card first, THEN link the point to it: talking_points.task_id
+      // is a FK, so the row must exist before we reference it (chained to avoid a
+      // race that would fail the FK and resync away the optimistic link).
+      persist(repo.insertTaskRow(taskInsertRow(t)).then(() => repo.updateTalkingPointRow(id, { task_id: t.id })));
       return firstCol.name;
     };
 

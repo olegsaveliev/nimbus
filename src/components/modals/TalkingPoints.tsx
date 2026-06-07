@@ -3,7 +3,7 @@
  * hand; check points off as "discussed", edit inline, drag to reorder, copy an
  * email-ready agenda, or promote a manual point into a real board card. */
 import { useEffect, useRef, useState } from "react";
-import type { Category, TalkingPoint, Task } from "@/types";
+import type { TalkingPoint, Task } from "@/types";
 import { Overlay } from "@/components/common/Overlay";
 import { IconChat, IconCopy, IconGrip, IconLink, IconPlus, IconTicket, IconTick, IconTrash } from "@/components/icons/Icons";
 
@@ -12,7 +12,6 @@ interface Props {
   points: TalkingPoint[];
   /** Resolve a point's source card by id (null when the card is gone). */
   tasksById: Map<string, Task>;
-  cats: Category[];
   onClose: () => void;
   onAdd: (text: string) => void;
   onToggle: (id: string) => void;
@@ -51,7 +50,6 @@ export function TalkingPoints({
   boardName,
   points,
   tasksById,
-  cats,
   onClose,
   onAdd,
   onToggle,
@@ -70,7 +68,6 @@ export function TalkingPoints({
 
   const open = points.filter((p) => !p.done).length;
   const done = points.length - open;
-  const catColor = (name: string | null) => cats.find((c) => c.name === name)?.color ?? "var(--accent)";
 
   const add = () => {
     const v = draft.replace(/\s+/g, " ").trim();
@@ -161,23 +158,18 @@ export function TalkingPoints({
                     </button>
                     <div className="tp-main">
                       <Editable value={p.text} done={p.done} onCommit={(txt) => onEdit(p.id, txt)} />
-                      {src ? (
-                        // Only show the source chip when it adds info beyond the title
-                        // (e.g. the card was renamed). When it just repeats the point
-                        // text, keep the row to a single title line.
-                        src.text.trim() !== p.text.trim() && (
-                          <span className="tp-src" onClick={() => onJump(src.id)} title="Jump to card">
-                            <span className="tp-cdot" style={{ background: catColor(src.cat) }}></span>
-                            <IconLink s={11} />
-                            {src.text}
-                          </span>
-                        )
-                      ) : (
-                        <button className="tp-make" onClick={() => onMakeTask(p.id)} title="Create a task on the board from this point">
-                          <IconTicket s={12} /> Make a task
-                        </button>
-                      )}
                     </div>
+                    {/* One action per row, next to delete: open the linked card for
+                        card-sourced points, or promote a manual point into a card. */}
+                    {src ? (
+                      <button className="tp-jump" onClick={() => onJump(src.id)} title="Open card" aria-label="Open card">
+                        <IconLink s={13} />
+                      </button>
+                    ) : (
+                      <button className="tp-make" onClick={() => onMakeTask(p.id)} title="Create a task on the board from this point">
+                        <IconTicket s={12} /> Make a task
+                      </button>
+                    )}
                     <button className="tp-del" onClick={() => onDelete(p.id)} title="Remove" aria-label="Remove">
                       <IconTrash />
                     </button>

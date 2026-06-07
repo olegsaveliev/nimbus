@@ -474,7 +474,6 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
           boardName={activeBoard?.name ?? "Board"}
           points={points}
           tasksById={tasksById}
-          cats={cats}
           onClose={() => closeModal("talkingPoints")}
           onAdd={actions.addPoint}
           onToggle={actions.togglePointDone}

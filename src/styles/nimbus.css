@@ -1101,8 +1101,16 @@ body {
 .tp-src svg { color: rgba(var(--muted),0.5); }
 .tp-src:hover svg { color: var(--accent); }
 .tp-cdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-.tp-make { background: transparent; border: 1px dashed rgba(var(--muted),0.4); color: rgba(var(--muted),0.7); }
+.tp-make { flex: none; align-self: center; background: transparent; border: 1px dashed rgba(var(--muted),0.4); color: rgba(var(--muted),0.7); }
 .tp-make:hover { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+
+/* open-card button (card-sourced points), sits left of delete like make-a-task */
+.tp-jump {
+  flex: none; align-self: center; width: 26px; height: 26px; border-radius: 8px;
+  border: none; background: transparent; cursor: pointer; color: rgba(var(--muted),0.42);
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.tp-jump:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
 
 .tp-del {
   flex: none; width: 26px; height: 26px; border-radius: 8px; align-self: center;
