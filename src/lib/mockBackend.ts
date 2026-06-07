@@ -21,12 +21,13 @@ interface Store {
   subtasks: Row[];
   comments: Row[];
   task_dependencies: Row[];
+  talking_points: Row[];
   user_preferences: Row[];
   ai_events: Row[];
 }
 
 function emptyStore(): Store {
-  return { boards: [], columns: [], categories: [], tasks: [], subtasks: [], comments: [], task_dependencies: [], user_preferences: [], ai_events: [] };
+  return { boards: [], columns: [], categories: [], tasks: [], subtasks: [], comments: [], task_dependencies: [], talking_points: [], user_preferences: [], ai_events: [] };
 }
 
 function load(): Store {

@@ -10,6 +10,7 @@ import {
   type CommentRow,
   type DepRow,
   type SubtaskRow,
+  type TalkingPointRow,
   type TaskRow,
 } from "./mapping";
 
@@ -20,17 +21,21 @@ export async function fetchBoardList(): Promise<Board[]> {
 }
 
 export async function fetchBoardData(boardId: string, name: string) {
-  const [cats, cols, tasks] = await Promise.all([
+  const [cats, cols, tasks, points] = await Promise.all([
     supabase.from("categories").select("id, name, color, position").eq("board_id", boardId),
     supabase.from("columns").select("id, key, name, dot, core, position").eq("board_id", boardId),
     supabase
       .from("tasks")
       .select("id, board_id, text, status, pri, category_id, due, est, description, repeat, started_at, completed_at, position")
       .eq("board_id", boardId),
+    supabase.from("talking_points").select("id, board_id, text, task_id, done, position").eq("board_id", boardId),
   ]);
   if (cats.error) throw cats.error;
   if (cols.error) throw cols.error;
   if (tasks.error) throw tasks.error;
+  // Talking points are additive: if the table isn't migrated yet, degrade to an
+  // empty list rather than breaking the whole board load.
+  if (points.error) console.warn("[Nimbus] talking_points unavailable (run migration 0002):", points.error.message);
 
   const taskIds = (tasks.data ?? []).map((t) => t.id);
   let subs: SubtaskRow[] = [];
@@ -59,6 +64,7 @@ export async function fetchBoardData(boardId: string, name: string) {
     subs,
     comments,
     deps,
+    (points.data ?? []) as TalkingPointRow[],
   );
 }
 
@@ -111,6 +117,27 @@ export async function reconcileDeps(taskId: string, deps: string[]): Promise<voi
 export async function insertCommentRow(id: string, taskId: string, body: string, author = "You"): Promise<void> {
   const { error } = await supabase.from("comments").insert({ id, task_id: taskId, body, author });
   if (error) throw error;
+}
+
+/* ---- Talking points ---- */
+export async function insertTalkingPointRow(row: Partial<TalkingPointRow>): Promise<void> {
+  const { error } = await supabase.from("talking_points").insert(row);
+  if (error) throw error;
+}
+export async function updateTalkingPointRow(id: string, patch: Record<string, unknown>): Promise<void> {
+  const { error } = await supabase.from("talking_points").update(patch).eq("id", id);
+  if (error) throw error;
+}
+export async function deleteTalkingPointRow(id: string): Promise<void> {
+  const { error } = await supabase.from("talking_points").delete().eq("id", id);
+  if (error) throw error;
+}
+export async function deleteTalkingPointsForBoard(boardId: string): Promise<void> {
+  const { error } = await supabase.from("talking_points").delete().eq("board_id", boardId);
+  if (error) throw error;
+}
+export async function updateTalkingPointPositions(updates: Array<{ id: string; position: number }>): Promise<void> {
+  await Promise.all(updates.map((u) => supabase.from("talking_points").update({ position: u.position }).eq("id", u.id)));
 }
 
 /* ---- Categories ---- */

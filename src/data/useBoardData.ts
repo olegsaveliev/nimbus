@@ -5,7 +5,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { qk } from "@/lib/queryClient";
-import type { BoardData, Category, Priority, Task } from "@/types";
+import type { BoardData, Category, Priority, TalkingPoint, Task } from "@/types";
 import { todayIso } from "@/domain/dates";
 import { bumpToTop, newlyUnblocked } from "@/domain/deps";
 import { PRI_CYCLE } from "@/domain/priority";
@@ -39,6 +39,16 @@ export interface BoardActions {
   moveColumn: (key: string, dir: number) => void;
   renameColumn: (key: string, name: string) => void;
   deleteColumn: (key: string) => void;
+  /* talking points */
+  togglePin: (task: { id: string; text: string }) => "added" | "removed";
+  addPoint: (text: string) => void;
+  togglePointDone: (id: string) => void;
+  editPoint: (id: string, text: string) => void;
+  deletePoint: (id: string) => void;
+  reorderPoints: (from: number, to: number) => void;
+  clearPoints: () => void;
+  /** Promote a manual point into a board card; returns the first column's name. */
+  makeTaskFromPoint: (id: string) => string | null;
 }
 
 interface Options {
@@ -479,9 +489,108 @@ export function useBoardData(boardId: string | null, name: string, opts: Options
       queryClient.invalidateQueries({ queryKey: qk.board(targetBoardId) });
     };
 
+    /* ---- talking points ---- */
+    const pointInsertRow = (p: TalkingPoint) => ({
+      id: p.id,
+      board_id: boardId!,
+      text: p.text,
+      task_id: p.taskId,
+      done: p.done,
+      position: p.position,
+    });
+
+    const togglePin: BoardActions["togglePin"] = (task) => {
+      const b = current();
+      const points = b?.points ?? [];
+      const existing = points.find((p) => p.taskId === task.id);
+      if (existing) {
+        setBoard((bd) => ({ ...bd, points: (bd.points ?? []).filter((p) => p.id !== existing.id) }));
+        persist(repo.deleteTalkingPointRow(existing.id));
+        return "removed";
+      }
+      const p: TalkingPoint = { id: uid(), text: task.text, taskId: task.id, done: false, position: points.length };
+      setBoard((bd) => ({ ...bd, points: [...(bd.points ?? []), p] }));
+      persist(repo.insertTalkingPointRow(pointInsertRow(p)));
+      return "added";
+    };
+
+    const addPoint: BoardActions["addPoint"] = (text) => {
+      const v = text.replace(/\s+/g, " ").trim();
+      if (!v) return;
+      const points = current()?.points ?? [];
+      const p: TalkingPoint = { id: uid(), text: v, taskId: null, done: false, position: points.length };
+      setBoard((bd) => ({ ...bd, points: [...(bd.points ?? []), p] }));
+      persist(repo.insertTalkingPointRow(pointInsertRow(p)));
+    };
+
+    const togglePointDone: BoardActions["togglePointDone"] = (id) => {
+      let next = false;
+      setBoard((bd) => ({
+        ...bd,
+        points: (bd.points ?? []).map((p) => {
+          if (p.id !== id) return p;
+          next = !p.done;
+          return { ...p, done: next };
+        }),
+      }));
+      persist(repo.updateTalkingPointRow(id, { done: next }));
+    };
+
+    const editPoint: BoardActions["editPoint"] = (id, text) => {
+      const v = text.replace(/\s+/g, " ").trim();
+      setBoard((bd) => ({ ...bd, points: (bd.points ?? []).map((p) => (p.id === id ? { ...p, text: v } : p)) }));
+      persist(repo.updateTalkingPointRow(id, { text: v }));
+    };
+
+    const deletePoint: BoardActions["deletePoint"] = (id) => {
+      setBoard((bd) => ({ ...bd, points: (bd.points ?? []).filter((p) => p.id !== id) }));
+      persist(repo.deleteTalkingPointRow(id));
+    };
+
+    const reorderPoints: BoardActions["reorderPoints"] = (from, to) => {
+      const b = current();
+      if (!b) return;
+      const points = b.points ?? [];
+      if (from === to || from < 0 || from >= points.length || to < 0 || to >= points.length) return;
+      const next = [...points];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      const renum = next.map((p, i) => ({ ...p, position: i }));
+      const changed = renum
+        .filter((p) => points.find((o) => o.id === p.id)?.position !== p.position)
+        .map((p) => ({ id: p.id, position: p.position }));
+      setBoard((bd) => ({ ...bd, points: renum }));
+      if (changed.length) persist(repo.updateTalkingPointPositions(changed));
+    };
+
+    const clearPoints: BoardActions["clearPoints"] = () => {
+      if (!boardId) return;
+      setBoard((bd) => ({ ...bd, points: [] }));
+      persist(repo.deleteTalkingPointsForBoard(boardId));
+    };
+
+    const makeTaskFromPoint: BoardActions["makeTaskFromPoint"] = (id) => {
+      const b = current();
+      if (!b) return null;
+      const point = (b.points ?? []).find((p) => p.id === id);
+      if (!point || point.taskId) return null;
+      const firstCol = b.columns[0] ?? CORE_COLUMNS[0];
+      const t = blankTask({ text: point.text, status: firstCol.key, pri: "med", position: -1 });
+      // Insert the card at the top of the first column, then link the point to it.
+      setBoard((bd) => ({
+        ...bd,
+        tasks: [t, ...bd.tasks],
+        points: (bd.points ?? []).map((p) => (p.id === id ? { ...p, taskId: t.id } : p)),
+      }));
+      persist(repo.insertTaskRow(taskInsertRow(t)));
+      persist(repo.updateTalkingPointRow(id, { task_id: t.id }));
+      return firstCol.name;
+    };
+
     return {
       addTask, addTaskObj, addBlankTask, addFromTemplate, del, cyclePri, updateTask, moveTaskToBoard, addComment,
       reorder, setTodoOrder, renameCat, recolorCat, addCat, deleteCat, addColumn, moveColumn, renameColumn, deleteColumn,
+      togglePin, addPoint, togglePointDone, editPoint, deletePoint, reorderPoints, clearPoints, makeTaskFromPoint,
     };
   }, [boardId, queryClient, onCelebrate, onFlash, defaultCat]);
 

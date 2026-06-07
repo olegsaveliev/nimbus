@@ -20,6 +20,7 @@ import {
   IconSpark,
   IconTarget,
   IconWand,
+  IconChatFill,
 } from "@/components/icons/Icons";
 
 interface Props {
@@ -37,6 +38,7 @@ interface Props {
   onSelectTheme: (i: number) => void;
   laneBy: LaneBy;
   onLaneBy: (l: LaneBy) => void;
+  pointsCount: number;
 }
 
 export function TopBar(props: Props) {
@@ -84,6 +86,11 @@ export function TopBar(props: Props) {
 
         <span className="tb-spring"></span>
 
+        <button className="tp-trigger" onClick={() => openModal("talkingPoints")} title="Open talking points">
+          <IconChatFill s={15} />
+          Talking points
+          {props.pointsCount > 0 && <span className="pill">{props.pointsCount}</span>}
+        </button>
         <button className="brief-btn" onClick={() => openModal("brief")}>
           <IconWand />
           Brief

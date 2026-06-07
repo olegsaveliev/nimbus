@@ -29,6 +29,8 @@ interface Props {
   onDelete: (id: string) => void;
   onCyclePri: (id: string) => void;
   onOpen: (id: string) => void;
+  pinnedSet: Set<string>;
+  onPin: (task: { id: string; text: string }) => void;
 }
 
 export function Column(props: Props) {
@@ -134,6 +136,7 @@ export function Column(props: Props) {
                   allTasks={allTasks}
                   dragging={dragId === t.id}
                   flash={flash.includes(t.id)}
+                  pinned={props.pinnedSet.has(t.id)}
                   onItemDragOver={(after) => setDropIdx(after ? i + 1 : i)}
                   onDragStart={props.onDragStart}
                   onDragEnd={() => {
@@ -143,6 +146,7 @@ export function Column(props: Props) {
                   onDelete={props.onDelete}
                   onCyclePri={props.onCyclePri}
                   onOpen={props.onOpen}
+                  onPin={props.onPin}
                 />
               </Fragment>
             ))}
@@ -164,6 +168,7 @@ export function Column(props: Props) {
                     allTasks={allTasks}
                     dragging={dragId === t.id}
                     flash={flash.includes(t.id)}
+                    pinned={props.pinnedSet.has(t.id)}
                     onItemDragOver={() => {}}
                     onDragStart={props.onDragStart}
                     onDragEnd={() => {
@@ -173,6 +178,7 @@ export function Column(props: Props) {
                     onDelete={props.onDelete}
                     onCyclePri={props.onCyclePri}
                     onOpen={props.onOpen}
+                    onPin={props.onPin}
                   />
                 ))}
               </div>

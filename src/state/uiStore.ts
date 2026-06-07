@@ -13,7 +13,8 @@ export type ModalName =
   | "palette"
   | "focus"
   | "templates"
-  | "addWithAI";
+  | "addWithAI"
+  | "talkingPoints";
 
 interface UIState {
   view: View;
@@ -70,6 +71,7 @@ const noModals: Record<ModalName, boolean> = {
   focus: false,
   templates: false,
   addWithAI: false,
+  talkingPoints: false,
 };
 
 const COMPACT_KEY = "nimbus-compact";

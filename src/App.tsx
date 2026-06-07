@@ -32,6 +32,7 @@ import { Settings } from "@/components/modals/Settings";
 import { Focus } from "@/components/modals/Focus";
 import { TemplatePicker } from "@/components/modals/TemplatePicker";
 import { AddWithAI } from "@/components/modals/AddWithAI";
+import { TalkingPoints } from "@/components/modals/TalkingPoints";
 import { CommandPalette, type Command } from "@/components/modals/CommandPalette";
 import { IconBoard, IconCalView, IconChart, IconCopy, IconDownload, IconGear, IconHelp, IconSpark, IconTag, IconTarget, IconWand } from "@/components/icons/Icons";
 
@@ -126,8 +127,13 @@ export function App() {
   const tasks = data?.tasks ?? [];
   const cats = data?.cats ?? [];
   const columns = data?.columns ?? CORE_COLUMNS;
+  const points = data?.points ?? [];
   const wipLimit = prefs.wipLimit;
   const laneBy = prefs.laneBy;
+
+  // Talking points: which cards are pinned, and a fast task lookup for source chips.
+  const pinnedSet = useMemo(() => new Set(points.filter((p) => p.taskId).map((p) => p.taskId as string)), [points]);
+  const tasksById = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
 
   // derived
   const matches = (x: { cat: string | null; text: string }) =>
@@ -212,6 +218,20 @@ export function App() {
   const showToast = (m: string) => {
     setToast(m);
     setTimeout(() => setToast(""), 3200);
+  };
+
+  // Talking points
+  const onPin = (task: { id: string; text: string }) => {
+    const res = actions.togglePin(task);
+    showToast(res === "added" ? "Added to talking points" : "Removed from talking points");
+  };
+  const onJumpToCard = (taskId: string) => {
+    closeModal("talkingPoints");
+    setOpenId(taskId);
+  };
+  const onMakeTaskFromPoint = (id: string) => {
+    const colName = actions.makeTaskFromPoint(id);
+    if (colName) showToast(`Task created in "${colName}" ✨`);
   };
 
   const applyAICommand = async (q: string) => {
@@ -341,6 +361,7 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
         onSelectTheme={(i) => updatePrefs({ theme: i, tweaks: { ...prefs.tweaks, accent: THEMES[i].accent } })}
         laneBy={laneBy}
         onLaneBy={(l: LaneBy) => updatePrefs({ laneBy: l })}
+        pointsCount={points.length}
       />
 
       {!data ? (
@@ -381,6 +402,8 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
             onDelete={actions.del}
             onCyclePri={actions.cyclePri}
             onOpen={openTask}
+            pinnedSet={pinnedSet}
+            onPin={onPin}
           />
         </>
       ) : view === "calendar" ? (
@@ -446,6 +469,23 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
       )}
       {modals.templates && <TemplatePicker onPick={addFromTemplate} onClose={() => closeModal("templates")} />}
       {modals.addWithAI && <AddWithAI cats={cats} onAdd={actions.addTaskObj} onClose={() => closeModal("addWithAI")} />}
+      {modals.talkingPoints && (
+        <TalkingPoints
+          boardName={activeBoard?.name ?? "Board"}
+          points={points}
+          tasksById={tasksById}
+          cats={cats}
+          onClose={() => closeModal("talkingPoints")}
+          onAdd={actions.addPoint}
+          onToggle={actions.togglePointDone}
+          onEdit={actions.editPoint}
+          onDelete={actions.deletePoint}
+          onReorder={actions.reorderPoints}
+          onClear={actions.clearPoints}
+          onJump={onJumpToCard}
+          onMakeTask={onMakeTaskFromPoint}
+        />
+      )}
       {modals.palette && (
         <CommandPalette
           commands={commands}

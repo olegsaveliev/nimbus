@@ -1,5 +1,5 @@
 /* Maps relational Postgres rows <-> the client's denormalised models. */
-import type { BoardData, Category, Column, Comment, Subtask, Task } from "@/types";
+import type { BoardData, Category, Column, Comment, Subtask, TalkingPoint, Task } from "@/types";
 
 export interface TaskRow {
   id: string;
@@ -48,6 +48,14 @@ export interface DepRow {
   task_id: string;
   depends_on_task_id: string;
 }
+export interface TalkingPointRow {
+  id: string;
+  board_id: string;
+  text: string;
+  task_id: string | null;
+  done: boolean;
+  position: number;
+}
 
 /** Human "time ago" for comment timestamps. */
 export function timeAgo(isoTs: string): string {
@@ -78,6 +86,10 @@ export function mapComment(r: CommentRow): Comment {
   return { id: r.id, by: r.author, text: r.body, time: timeAgo(r.created_at) };
 }
 
+export function mapTalkingPoint(r: TalkingPointRow): TalkingPoint {
+  return { id: r.id, text: r.text, taskId: r.task_id, done: r.done, position: r.position };
+}
+
 export function assembleBoard(
   boardId: string,
   name: string,
@@ -87,9 +99,11 @@ export function assembleBoard(
   subRows: SubtaskRow[],
   commentRows: CommentRow[],
   depRows: DepRow[],
+  pointRows: TalkingPointRow[] = [],
 ): BoardData {
   const cats = [...catRows].sort((a, b) => a.position - b.position).map(mapCategory);
   const columns = [...colRows].sort((a, b) => a.position - b.position).map(mapColumn);
+  const points = [...pointRows].sort((a, b) => a.position - b.position).map(mapTalkingPoint);
   const catName = new Map(catRows.map((c) => [c.id, c.name]));
 
   const subsByTask = new Map<string, Subtask[]>();
@@ -138,5 +152,5 @@ export function assembleBoard(
       position: r.position,
     }));
 
-  return { id: boardId, name, tasks, cats, columns };
+  return { id: boardId, name, tasks, cats, columns, points };
 }

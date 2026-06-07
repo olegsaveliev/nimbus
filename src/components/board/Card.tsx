@@ -4,22 +4,26 @@ import { depsBlockedCount } from "@/domain/deps";
 import { fmtEst } from "@/domain/estimate";
 import { REPEAT_LABEL } from "@/domain/recurrence";
 import { useUI } from "@/state/uiStore";
-import { IconCal, IconChat, IconCheckSq, IconClock, IconLink, IconNote, IconRepeat, IconTrash } from "@/components/icons/Icons";
+import { IconCal, IconChat, IconChatFill, IconCheckSq, IconClock, IconLink, IconNote, IconRepeat, IconTrash } from "@/components/icons/Icons";
 
 interface CardProps {
   t: Task;
   allTasks: Task[];
   dragging: boolean;
   flash: boolean;
+  /** This card is on the board's talking-points list. */
+  pinned?: boolean;
   onDragStart: (e: React.DragEvent, id: string) => void;
   onDragEnd: () => void;
   onDelete: (id: string) => void;
   onCyclePri: (id: string) => void;
   onOpen: (id: string) => void;
+  /** Toggle this card on/off the talking-points list. */
+  onPin?: (task: { id: string; text: string }) => void;
   onItemDragOver?: (after: boolean) => void;
 }
 
-export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onDelete, onCyclePri, onOpen, onItemDragOver }: CardProps) {
+export function Card({ t, allTasks, dragging, flash, pinned, onDragStart, onDragEnd, onDelete, onCyclePri, onOpen, onPin, onItemDragOver }: CardProps) {
   const compact = useUI((s) => s.compact);
   const due = fmtDue(t.due);
   const done = t.status === "done";
@@ -46,6 +50,16 @@ export function Card({ t, allTasks, dragging, flash, onDragStart, onDragEnd, onD
     >
       <div className="kc-top">
         <div className="txt">{t.text}</div>
+        {onPin && (
+          <button
+            className={"kc-pin" + (pinned ? " on" : "")}
+            onClick={(e) => { e.stopPropagation(); onPin({ id: t.id, text: t.text }); }}
+            title={pinned ? "Remove from talking points" : "Add to talking points"}
+            aria-label={pinned ? "Remove from talking points" : "Add to talking points"}
+          >
+            {pinned ? <IconChatFill s={14} /> : <IconChat s={14} />}
+          </button>
+        )}
         <button className="del" onClick={(e) => { e.stopPropagation(); onDelete(t.id); }} aria-label="Delete">
           <IconTrash />
         </button>

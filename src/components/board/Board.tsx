@@ -23,6 +23,8 @@ interface Props {
   onDelete: (id: string) => void;
   onCyclePri: (id: string) => void;
   onOpen: (id: string) => void;
+  pinnedSet: Set<string>;
+  onPin: (task: { id: string; text: string }) => void;
 }
 
 export function Board(props: Props) {
@@ -57,6 +59,8 @@ export function Board(props: Props) {
           onDelete={props.onDelete}
           onCyclePri={props.onCyclePri}
           onOpen={props.onOpen}
+          pinnedSet={props.pinnedSet}
+          onPin={props.onPin}
         />
       ))}
     </div>

@@ -70,6 +70,20 @@ export interface Board {
   name: string;
 }
 
+/** A pinned one-line note to raise with a client/in a meeting. Lives per board.
+ * Either sourced from a card (taskId set) or typed by hand (taskId null). */
+export interface TalkingPoint {
+  id: string;
+  /** The one-line note (editable). */
+  text: string;
+  /** Links to a board task; null = manually typed. */
+  taskId: string | null;
+  /** "Discussed". */
+  done: boolean;
+  /** Manual ordering within the list. */
+  position: number;
+}
+
 /** A board's full working set, as the client holds it in memory. */
 export interface BoardData {
   id: string;
@@ -77,6 +91,7 @@ export interface BoardData {
   tasks: Task[];
   cats: Category[];
   columns: Column[];
+  points: TalkingPoint[];
 }
 
 export interface Theme {
