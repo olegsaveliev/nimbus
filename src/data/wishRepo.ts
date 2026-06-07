@@ -105,3 +105,21 @@ export async function deleteWishRow(id: string): Promise<void> {
   const { error } = await supabase.from("wishes").delete().eq("id", id);
   if (error) throw error;
 }
+
+/* ---- Per-account "samples already seeded" flag (user_preferences.wishlist_seeded) ----
+ * Read/written separately from the main preferences query so a not-yet-migrated
+ * column degrades gracefully (treated as "not seeded") instead of breaking the
+ * whole preferences load. */
+export async function fetchWishlistSeeded(): Promise<boolean> {
+  const { data, error } = await supabase.from("user_preferences").select("wishlist_seeded").maybeSingle();
+  if (error) {
+    console.warn("[Nimbus] wishlist_seeded unavailable (run migration 0004):", error.message);
+    return false;
+  }
+  return Boolean((data as { wishlist_seeded?: boolean } | null)?.wishlist_seeded);
+}
+
+export async function markWishlistSeeded(userId: string): Promise<void> {
+  const { error } = await supabase.from("user_preferences").update({ wishlist_seeded: true }).eq("user_id", userId);
+  if (error) console.warn("[Nimbus] could not persist wishlist_seeded:", error.message);
+}

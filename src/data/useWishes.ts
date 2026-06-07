@@ -3,7 +3,8 @@
  * that patch the cache immediately and persist to Postgres. On any persistence
  * error the wishes query is invalidated to resync — same discipline as
  * useBoardData. Also seeds the sample wishes once on first ever visit (mirrors
- * ensureStarterBoard), gated by a localStorage flag so it never re-seeds. */
+ * ensureStarterBoard), gated by a *per-account* flag (user_preferences
+ * .wishlist_seeded) so it never re-seeds — including across browsers/devices. */
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -14,7 +15,6 @@ import type { Priority, Wish, WishStage } from "@/types";
 import * as repo from "./wishRepo";
 
 const uid = () => crypto.randomUUID();
-const SEEDED_KEY = "nimbus-wishlist-seeded";
 
 async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getUser();
@@ -40,20 +40,38 @@ export function useWishes() {
     queryFn: repo.fetchWishes,
   });
 
-  // One-time seed: on first load with an empty list (and no prior seed), insert
-  // the sample wishes so the feed has something to show — the Wishlist analogue
-  // of the starter board. Guarded so deleting every wish never re-seeds.
+  // Per-account "samples already seeded" flag — read separately from the main
+  // preferences query so a not-yet-migrated column degrades to "not seeded"
+  // rather than breaking preferences/theme/board loading.
+  const seededQuery = useQuery({
+    queryKey: qk.wishlistSeeded,
+    queryFn: repo.fetchWishlistSeeded,
+  });
+
+  // One-time seed: on first ever load with an empty list, insert the sample
+  // wishes so the feed has something to show — the Wishlist analogue of the
+  // starter board. The flag lives on the user's preferences row, so deleting
+  // every wish never re-seeds, on this device or any other.
   const seedingRef = useRef(false);
   useEffect(() => {
-    if (!query.isSuccess || seedingRef.current) return;
-    if ((query.data?.length ?? 0) > 0) return;
-    let seeded = false;
-    try {
-      seeded = localStorage.getItem(SEEDED_KEY) === "1";
-    } catch {
-      /* ignore */
+    if (!query.isSuccess || !seededQuery.isSuccess || seedingRef.current) return;
+    const hasWishes = (query.data?.length ?? 0) > 0;
+
+    // Account already has wishes but the flag isn't set (e.g. it was seeded under
+    // the old per-browser localStorage scheme). Back-fill the flag so deleting
+    // them all later can't trigger a re-seed on a fresh browser/device.
+    if (hasWishes) {
+      if (!seededQuery.data) {
+        qc.setQueryData<boolean>(qk.wishlistSeeded, true);
+        currentUserId().then((userId) => {
+          if (userId) repo.markWishlistSeeded(userId);
+        });
+      }
+      return;
     }
-    if (seeded) return;
+
+    // Empty list: seed only if this account has never been seeded before.
+    if (seededQuery.data) return;
     seedingRef.current = true;
     (async () => {
       const userId = await currentUserId();
@@ -64,11 +82,8 @@ export function useWishes() {
       const wishes: Wish[] = SEED_WISHES.map((s, i) => ({ ...s, id: uid(), position: i }));
       try {
         await repo.insertWishRows(wishes.map((w) => repo.toInsertRow(w, userId)));
-        try {
-          localStorage.setItem(SEEDED_KEY, "1");
-        } catch {
-          /* ignore */
-        }
+        await repo.markWishlistSeeded(userId);
+        qc.setQueryData<boolean>(qk.wishlistSeeded, true);
         qc.setQueryData<Wish[]>(qk.wishes, wishes);
       } catch (e) {
         console.error("[Nimbus] wishlist seed failed:", e);
@@ -77,7 +92,7 @@ export function useWishes() {
         seedingRef.current = false;
       }
     })();
-  }, [query.isSuccess, query.data, qc]);
+  }, [query.isSuccess, query.data, seededQuery.isSuccess, seededQuery.data, qc]);
 
   const actions = useMemo<WishActions>(() => {
     const current = () => qc.getQueryData<Wish[]>(qk.wishes) ?? [];

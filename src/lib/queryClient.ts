@@ -16,4 +16,5 @@ export const qk = {
   preferences: ["preferences"] as const,
   aiUsage: ["aiUsage"] as const,
   wishes: ["wishes"] as const,
+  wishlistSeeded: ["wishlistSeeded"] as const,
 };
