@@ -132,6 +132,9 @@ export function WishDetailSheet({ item, onClose, onPatch, onBump, onDel }: Props
               <button onClick={() => onBump(item.id, 25)}>+ $25</button>
               <button onClick={() => onBump(item.id, 50)}>+ $50</button>
               <button onClick={() => onBump(item.id, 100)}>+ $100</button>
+              <button className="neg" disabled={item.saved <= 0} onClick={() => onBump(item.id, -25)}>− $25</button>
+              <button className="neg" disabled={item.saved <= 0} onClick={() => onBump(item.id, -50)}>− $50</button>
+              <button className="neg" disabled={item.saved <= 0} onClick={() => onBump(item.id, -100)}>− $100</button>
             </div>
           </div>
 

@@ -155,6 +155,16 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
                 >
                   Add
                 </button>
+                <button
+                  className="neg"
+                  disabled={!custom || item.saved <= 0}
+                  onClick={() => {
+                    onBump(item.id, -(parseFloat(custom) || 0));
+                    setCustom("");
+                  }}
+                >
+                  Remove
+                </button>
               </div>
             </div>
           </div>
