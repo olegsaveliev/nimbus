@@ -215,7 +215,7 @@ body {
   display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; min-width: 0;
   padding: 0 4px 8px; margin-bottom: 4px; flex: none; position: relative;
 }
-.col-head .name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink); text-transform: uppercase; }
+.col-head .name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink); text-transform: uppercase; }
 .col-head .num {
   flex: none; font-size: 11.5px; font-weight: 800;
   color: color-mix(in srgb, var(--col-accent, var(--accent)) 80%, var(--ink));
@@ -223,7 +223,7 @@ body {
   border-radius: 999px; padding: 2px 10px; min-width: 24px; text-align: center;
 }
 .col-name-edit { flex: 1; min-width: 0; font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: 0.02em; color: var(--ink); text-transform: uppercase; background: rgba(var(--surf),0.7); border: 1px solid var(--accent); border-radius: 8px; padding: 3px 7px; outline: none; }
-.col-tools { display: flex; align-items: center; gap: 1px; flex: none; opacity: 0; transition: opacity 0.15s; }
+.col-tools { display: flex; align-items: center; gap: 1px; flex: none; margin-left: auto; opacity: 0; transition: opacity 0.15s; }
 .column:hover .col-tools { opacity: 1; }
 .col-tools button { width: 24px; height: 24px; border-radius: 7px; border: none; background: transparent; color: rgba(var(--muted),0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.13s; }
 .col-tools button:hover { background: rgba(var(--surf),0.65); color: var(--ink); }
@@ -823,9 +823,8 @@ body {
 .confetti-bit { position: fixed; z-index: 300; width: 9px; height: 9px; border-radius: 2px; pointer-events: none; animation: confetti 1s cubic-bezier(.2,.6,.3,1) forwards; }
 @keyframes confetti { 0% { transform: translate(0,0) rotate(0); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; } }
 
-/* ===== Streak chip ===== */
-.streak { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 800; color: #d4691a; background: rgba(245,166,35,0.18); border: 1px solid rgba(245,166,35,0.32); border-radius: 999px; padding: 2px 9px 2px 7px; }
-.streak svg { color: #f5821f; }
+/* ===== Open/done counts chip ===== */
+.counts { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 800; color: #d4691a; background: rgba(245,166,35,0.18); border: 1px solid rgba(245,166,35,0.32); border-radius: 999px; padding: 2px 9px; }
 
 /* ===== Command palette ===== */
 .cmdk-overlay { align-items: flex-start; padding-top: 11vh; }

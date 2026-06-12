@@ -8,7 +8,6 @@ import {
   IconCalView,
   IconChart,
   IconCopy,
-  IconFlame,
   IconFlow,
   IconCheckSq,
   IconGear,
@@ -29,7 +28,6 @@ interface Props {
   pct: number;
   openCount: number;
   doneCount: number;
-  streak: number;
   boards: Board[];
   activeBoardId: string | null;
   onSwitchBoard: (id: string) => void;
@@ -75,13 +73,7 @@ export function TopBar(props: Props) {
               onDelete={props.onDeleteBoard}
             />
             <div className="sub">
-              {props.openCount} open · {props.doneCount} done
-              {props.streak > 0 && (
-                <span className="streak">
-                  <IconFlame />
-                  {props.streak}-day streak
-                </span>
-              )}
+              <span className="counts">{props.openCount} open · {props.doneCount} done</span>
             </div>
           </div>
         </div>

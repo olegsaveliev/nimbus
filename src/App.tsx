@@ -6,7 +6,6 @@ import { depsBlockedCount } from "@/domain/deps";
 import { CORE_COLUMNS, MAX_COLUMNS } from "@/domain/board";
 import { boardMarkdown } from "@/domain/markdown";
 import { parseQuickAdd } from "@/domain/quickAdd";
-import { currentStreak } from "@/domain/streak";
 import { fmtDue } from "@/domain/dates";
 import { THEMES, applyTheme, grad } from "@/domain/themes";
 import { celebrate } from "@/lib/confetti";
@@ -149,7 +148,6 @@ export function App() {
   });
   const visibleCount = tasks.filter(matches).length;
   const doneCount = (byCol["done"] || []).length;
-  const streak = currentStreak(tasks);
   const pct = visibleCount ? Math.round((doneCount / visibleCount) * 100) : 0;
   const openCount = visibleCount - doneCount;
   const catNames = cats.map((c) => c.name);
@@ -366,7 +364,7 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
     { label: "Start focus session", icon: <IconTarget s={15} />, kw: "focus pomodoro timer", run: () => openModal("focus") },
     { label: "New from template", icon: <IconCopy />, kw: "template bug feature meeting", run: () => openModal("templates") },
     { label: "Add tasks with AI", icon: <IconSpark />, sub: "AI", kw: "ai brain dump paste notes transcript extract", run: () => openModal("addWithAI") },
-    { label: "Open the Brief", icon: <IconWand s={15} />, kw: "standup sprint recap triage ai", run: () => openModal("brief") },
+    { label: "Open the Brief", icon: <IconWand s={15} />, kw: "standup daily weekly review ai", run: () => openModal("brief") },
     { label: "Plan my day with AI", icon: <IconSpark />, sub: "AI", kw: "plan order schedule ai", run: () => planMyDay() },
     { label: "Manage categories", icon: <IconTag />, kw: "lists rename color", run: () => openModal("manageCats") },
     { label: "Export board to Markdown", icon: <IconDownload />, sub: "copied", kw: "export markdown copy share", run: () => exportBoard() },
@@ -393,7 +391,6 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
         pct={pct}
         openCount={openCount}
         doneCount={doneCount}
-        streak={streak}
         boards={boards}
         activeBoardId={activeBoardId}
         onSwitchBoard={switchBoard}

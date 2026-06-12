@@ -107,7 +107,7 @@ export function TasksMobile({
                 onDelete={onDeleteBoard}
               />
               <div className="sub">
-                {counts.All ?? 0} open · {doneCount} done
+                <span className="counts">{counts.All ?? 0} open · {doneCount} done</span>
               </div>
             </div>
             <div className="tdm-head-actions">

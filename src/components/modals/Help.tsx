@@ -77,7 +77,7 @@ export function Help({ onClose }: { onClose: () => void }) {
             <Item icon={<IconSpark />} title="Add with AI">The <b>✨ button</b> opens a box — paste a brain-dump, email, or notes and AI extracts clean tasks for you to review and add.</Item>
             <Item icon={<IconSpark />} title="Card assists"><b>Improve</b> rewrites the title + adds acceptance criteria, <b>Suggest details</b> fills priority/category/estimate, and <b>Suggest blockers</b> proposes dependencies.</Item>
             <Item icon={<IconSearchCmd s={15} />} title="Natural-language commands">In <kbd>⌘K</kbd>, type a request like <kbd>move everything overdue to today and bump to high</kbd> and pick <b>Ask AI to do this</b>.</Item>
-            <Item icon={<IconWand s={14} />} title="Brief: Insights & Review">Beyond Daily/Sprint/Recap/Triage, the Brief has <b>Insights</b> (bottlenecks & the one move to fix flow) and a <b>Weekly Review</b> retro.</Item>
+            <Item icon={<IconWand s={14} />} title="Brief: Daily & Review">The Brief has a <b>Daily</b> standup view (overdue, due today, what to start next) and a <b>Weekly Review</b> retro of shipped and slipped work.</Item>
             <Item icon={<IconTarget s={14} />} title="Focus coach">In Focus mode, see whether today's picks <b>fit a focused day</b>, and tap <b>“What's the first step?”</b> for a nudge.</Item>
           </div>
 
@@ -87,7 +87,7 @@ export function Help({ onClose }: { onClose: () => void }) {
             <Item icon={<IconSpark />} title="Plan my day (AI)">From the palette, <b>Plan my day with AI</b> reorders your To Do list into the smartest sequence for today.</Item>
             <Item icon={<IconClock s={14} />} title="Time estimates">Give a card an estimate (30m–1d); it shows as a <b>~2h</b> badge on the board.</Item>
             <Item icon={<IconFlow s={14} />} title="WIP limit">Set a soft cap on In Progress in <b>Settings</b> — the column warns when you overload it.</Item>
-            <Item icon={<IconFlame s={13} />} title="Streaks & celebration">Keep a daily-completion <b>streak</b>, and enjoy confetti each time you finish a task.</Item>
+            <Item icon={<IconFlame s={13} />} title="Celebration">Enjoy confetti each time you finish a task.</Item>
             <Item icon={<IconDownload s={14} />} title="Export">Copy the whole board as Markdown from Settings or the palette.</Item>
           </div>
 
