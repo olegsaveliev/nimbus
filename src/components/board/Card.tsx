@@ -28,11 +28,13 @@ export function Card({ t, allTasks, dragging, flash, pinned, onDragStart, onDrag
   const due = fmtDue(t.due);
   const done = t.status === "done";
   const blockedN = depsBlockedCount(t, allTasks || []);
+  // Open tasks waiting on this one — a done task no longer blocks anything.
+  const blocksN = done ? 0 : (allTasks || []).filter((x) => x.status !== "done" && (x.deps || []).includes(t.id)).length;
   const subs = t.subtasks || [];
   const subDone = subs.filter((s) => s.done).length;
   const rep = t.repeat && t.repeat !== "none" ? t.repeat : null;
   const est = t.est ? fmtEst(t.est) : null;
-  const hasFooter = t.desc || (t.comments && t.comments.length > 0) || blockedN > 0 || subs.length > 0 || rep || est;
+  const hasFooter = t.desc || (t.comments && t.comments.length > 0) || blockedN > 0 || blocksN > 0 || subs.length > 0 || rep || est;
 
   return (
     <div
@@ -82,6 +84,12 @@ export function Card({ t, allTasks, dragging, flash, pinned, onDragStart, onDrag
               <span className="kc-badge blocked">
                 <IconLink />
                 Blocked
+              </span>
+            )}
+            {blocksN > 0 && (
+              <span className="kc-badge blocks" title={`${blocksN} task${blocksN > 1 ? "s" : ""} waiting on this one`}>
+                <IconLink />
+                Blocks {blocksN}
               </span>
             )}
             {rep && (

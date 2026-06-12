@@ -43,6 +43,8 @@ export function Detail({ t, cats, columns, allTasks, boards, boardId, onOpen, on
 
   const depList = (t.deps || []).map((id) => (allTasks || []).find((x) => x.id === id)).filter(Boolean) as Task[];
   const blockedN = depList.filter((d) => d.status !== "done").length;
+  // Inverse of "blocked by": open tasks that list this one as a prerequisite.
+  const blocksList = (allTasks || []).filter((x) => x.status !== "done" && (x.deps || []).includes(t.id));
   const eligible = (allTasks || []).filter(
     (x) => x.id !== t.id && x.status !== "done" && !(t.deps || []).includes(x.id) && !wouldCycle(allTasks || [], t.id, x.id),
   );
@@ -324,6 +326,30 @@ export function Detail({ t, cats, columns, allTasks, boards, boardId, onOpen, on
               <button className="dep-add" onClick={() => setDepPick(true)}><IconPlus /> Add dependency</button>
             )}
           </div>
+
+          {blocksList.length > 0 && (
+            <div className="field">
+              <label>Blocks</label>
+              <span className="hint">
+                {blocksList.length === 1 ? "This task is holding up 1 other." : `This task is holding up ${blocksList.length} others.`}
+              </span>
+              <div className="dep-list">
+                {blocksList.map((b) => (
+                  <div className="dep-chip" key={b.id}>
+                    <span className={"ds " + (t.status === "done" ? "done" : "pending")}></span>
+                    <span className="dn" onClick={() => onOpen && onOpen(b.id)} title="Open this task">{b.text}</span>
+                    <button
+                      className="dx"
+                      onClick={() => onUpdate(b.id, { deps: (b.deps || []).filter((x) => x !== t.id) })}
+                      aria-label="Unlink"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="d-divider"></div>
 

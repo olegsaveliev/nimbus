@@ -377,6 +377,8 @@ body {
 .kc-badge svg { opacity: 0.7; }
 .kc-badge.blocked { color: #d4456b; }
 .kc-badge.blocked svg { opacity: 0.9; }
+.kc-badge.blocks { color: #c47e10; }
+.kc-badge.blocks svg { opacity: 0.9; }
 
 /* dependencies (in detail modal) */
 .dep-state { font-size: 12.5px; font-weight: 800; display: flex; align-items: center; gap: 7px; }
