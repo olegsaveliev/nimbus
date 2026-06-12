@@ -106,7 +106,59 @@ const HELP =
   "  !high / !med / !low — priority\n" +
   "  #Work — category\n" +
   "  today · tomorrow · friday · in 3 days · next week — due date\n\n" +
+  "/boards — list your boards · /board <name> — choose where tasks go\n\n" +
   "To connect your account: Nimbus → Settings → Telegram → send me the /start code.";
+
+async function userBoards(userId: string): Promise<Array<{ id: string; name: string }>> {
+  const { data } = await db.from("boards").select("id, name").eq("user_id", userId).order("position");
+  return data ?? [];
+}
+
+async function linkFor(chatId: number): Promise<{ user_id: string; target_board_id: string | null } | null> {
+  const { data } = await db
+    .from("telegram_links")
+    .select("user_id, target_board_id")
+    .eq("chat_id", chatId)
+    .maybeSingle();
+  return data ?? null;
+}
+
+const NOT_CONNECTED = "This chat isn't connected yet. Open Nimbus → Settings → Telegram and send me the /start code.";
+
+async function handleBoards(chatId: number, arg: string | undefined): Promise<void> {
+  const link = await linkFor(chatId);
+  if (!link) {
+    await reply(chatId, NOT_CONNECTED);
+    return;
+  }
+  const boards = await userBoards(link.user_id);
+  if (!boards.length) {
+    await reply(chatId, "No boards on your account yet — open Nimbus once to create one.");
+    return;
+  }
+
+  if (arg) {
+    const n = arg.toLowerCase();
+    const byIdx = /^\d+$/.test(arg) ? boards[parseInt(arg, 10) - 1] : undefined;
+    const target =
+      byIdx ||
+      boards.find((b) => b.name.toLowerCase() === n) ||
+      boards.find((b) => b.name.toLowerCase().startsWith(n));
+    if (!target) {
+      await reply(chatId, `No board matches “${arg}”. Send /boards to see the list.`);
+      return;
+    }
+    await db.from("telegram_links").update({ target_board_id: target.id }).eq("chat_id", chatId);
+    await reply(chatId, `Got it — new tasks go to “${target.name}”.`);
+    return;
+  }
+
+  const list = boards.map((b, i) => `${i + 1}. ${b.name}${b.id === link.target_board_id ? "  ← current" : ""}`).join("\n");
+  const suffix = link.target_board_id
+    ? ""
+    : "\n(currently following your active board in the app)";
+  await reply(chatId, `Your boards:\n${list}${suffix}\n\nSend /board <name or number> to choose.`);
+}
 
 async function handleStart(chatId: number, code: string | undefined): Promise<void> {
   if (!code) {
@@ -128,40 +180,30 @@ async function handleStart(chatId: number, code: string | undefined): Promise<vo
 }
 
 async function handleTask(chatId: number, text: string): Promise<void> {
-  const { data: link } = await db.from("telegram_links").select("user_id").eq("chat_id", chatId).maybeSingle();
+  const link = await linkFor(chatId);
   if (!link) {
-    await reply(chatId, "This chat isn't connected yet. Open Nimbus → Settings → Telegram and send me the /start code.");
+    await reply(chatId, NOT_CONNECTED);
     return;
   }
 
-  // Target board: the user's active board, falling back to their first board.
-  const { data: prefs } = await db
-    .from("user_preferences")
-    .select("active_board_id")
-    .eq("user_id", link.user_id)
-    .maybeSingle();
-  let boardId = prefs?.active_board_id ?? null;
-  let boardName = "";
-  if (boardId) {
-    const { data: b } = await db.from("boards").select("id, name").eq("id", boardId).maybeSingle();
-    boardId = b?.id ?? null;
-    boardName = b?.name ?? "";
-  }
-  if (!boardId) {
-    const { data: b } = await db
-      .from("boards")
-      .select("id, name")
-      .eq("user_id", link.user_id)
-      .order("position")
-      .limit(1)
-      .maybeSingle();
-    boardId = b?.id ?? null;
-    boardName = b?.name ?? "";
-  }
-  if (!boardId) {
+  // Target board: the /board pin if set, else the user's active board in the
+  // app, else their first board. The pin auto-nulls if its board is deleted.
+  const boards = await userBoards(link.user_id);
+  if (!boards.length) {
     await reply(chatId, "Couldn't find a board on your account — open Nimbus once to create one.");
     return;
   }
+  let board = boards.find((b) => b.id === link.target_board_id) ?? null;
+  if (!board) {
+    const { data: prefs } = await db
+      .from("user_preferences")
+      .select("active_board_id")
+      .eq("user_id", link.user_id)
+      .maybeSingle();
+    board = boards.find((b) => b.id === prefs?.active_board_id) ?? boards[0];
+  }
+  const boardId = board.id;
+  const boardName = board.name;
 
   const { data: cats } = await db.from("categories").select("id, name").eq("board_id", boardId);
   const p = parseQuickAdd(text, cats ?? []);
@@ -219,6 +261,7 @@ Deno.serve(async (req) => {
   try {
     if (/^\/start\b/.test(text)) await handleStart(chatId, text.split(/\s+/)[1]);
     else if (/^\/help\b/.test(text)) await reply(chatId, HELP);
+    else if (/^\/boards?\b/.test(text)) await handleBoards(chatId, text.replace(/^\/boards?\s*/, "").trim() || undefined);
     else await handleTask(chatId, text);
   } catch (e) {
     console.error("telegram-webhook:", e);

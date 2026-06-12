@@ -55,5 +55,6 @@ After that, any plain message becomes a task. `/help` shows the syntax.
   authenticated via the `X-Telegram-Bot-Api-Secret-Token` header.
 - Relative dates ("tomorrow", "friday") are resolved in **UTC**, so a late-night
   message may land a day off depending on your timezone.
-- Tasks go to the **active board** (Settings/board switcher), falling back to
-  the first board.
+- Tasks go to the board pinned with **`/board <name>`** (see `/boards` for the
+  list); with no pin they follow the **active board** in the app, falling back
+  to the first board. Deleting a pinned board clears the pin.
