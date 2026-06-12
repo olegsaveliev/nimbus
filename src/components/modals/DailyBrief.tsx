@@ -8,10 +8,6 @@ import { Overlay } from "@/components/common/Overlay";
 
 const TABS: Array<[BriefMode, string]> = [
   ["daily", "Daily"],
-  ["sprint", "Sprint"],
-  ["recap", "Recap"],
-  ["triage", "Triage"],
-  ["insights", "Insights"],
   ["review", "Review"],
 ];
 
@@ -83,7 +79,7 @@ export function DailyBrief({ tasks, onClose }: { tasks: Task[]; onClose: () => v
             )}
           </div>
 
-          {(mode === "sprint" || mode === "review") && data.stats && (
+          {mode === "review" && data.stats && (
             <div className="brief-stats">
               {data.stats.map((s, i) => (
                 <div className={"bstat" + (s.warn ? " warn" : "")} key={i}>
@@ -96,14 +92,8 @@ export function DailyBrief({ tasks, onClose }: { tasks: Task[]; onClose: () => v
 
           {data.empty ? (
             <div className="allclear">
-              <div className="em">{mode === "recap" ? "🌙" : mode === "insights" ? "🧠" : "✨"}</div>
-              {mode === "recap"
-                ? "Nothing closed yet today — drag a card to Done."
-                : mode === "insights"
-                  ? "Flow looks healthy — nothing blocked or overdue."
-                  : mode === "triage"
-                    ? "Nothing needs attention. Clean board!"
-                    : "Nothing overdue or due today. You're clear!"}
+              <div className="em">✨</div>
+              Nothing overdue or due today. You're clear!
             </div>
           ) : (
             data.groups.map((g) => (
