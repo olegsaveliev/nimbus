@@ -206,6 +206,12 @@
 .tdm-greet { flex: 1; }
 .tdm-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(var(--muted),0.55); }
 .tdm-greet h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; margin-top: 3px; }
+/* The desktop board switcher, restyled as the mobile title: the board name IS
+   the h1, with the chevron beside it and the dropdown menu below. */
+.tdm-greet .bsw-trigger { padding: 0; margin-top: 3px; max-width: 100%; }
+.tdm-greet .bsw-trigger h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tdm-greet .bsw-trigger:hover { background: transparent; }
+.tdm-greet .bsw-menu { width: 260px; max-width: calc(100vw - 36px); }
 .tdm-greet .sub { font-size: 13px; font-weight: 700; color: rgba(var(--muted),0.58); margin-top: 4px; }
 .tdm-ring { position: relative; width: 62px; height: 62px; flex: none; }
 .tdm-ring svg { transform: rotate(-90deg); }

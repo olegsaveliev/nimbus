@@ -6,11 +6,12 @@
  * the shared filter/query UI state; only the shell is phone-specific. */
 import { useState } from "react";
 import type { BoardActions } from "@/data/useBoardData";
-import type { Category, Column, Priority, Task } from "@/types";
+import type { Board, Category, Column, Priority, Task } from "@/types";
 import { fmtDue } from "@/domain/dates";
 import { PRI_ORDER } from "@/domain/priority";
 import { useUI } from "@/state/uiStore";
 import { IconCal, IconPlus, IconSearch, IconTrash, IconTick } from "@/components/icons/Icons";
+import { BoardSwitcher } from "@/components/topbar/BoardSwitcher";
 import { AppSeg, MiniRing, ThemeSwatch } from "./MobileBits";
 
 interface Props {
@@ -22,12 +23,33 @@ interface Props {
   theme: number;
   onSelectTheme: (i: number) => void;
   onGoWishlist: () => void;
+  boards: Board[];
+  activeBoardId: string | null;
+  onSwitchBoard: (id: string) => void;
+  onAddBoard: () => void;
+  onRenameBoard: (id: string, name: string) => void;
+  onDeleteBoard: (id: string) => void;
 }
 
 const sortTasks = (list: Task[]) =>
   list.slice().sort((a, b) => PRI_ORDER[a.pri] - PRI_ORDER[b.pri] || (a.due || "9999").localeCompare(b.due || "9999"));
 
-export function TasksMobile({ tasks, cats, columns, actions, loading, theme, onSelectTheme, onGoWishlist }: Props) {
+export function TasksMobile({
+  tasks,
+  cats,
+  columns,
+  actions,
+  loading,
+  theme,
+  onSelectTheme,
+  onGoWishlist,
+  boards,
+  activeBoardId,
+  onSwitchBoard,
+  onAddBoard,
+  onRenameBoard,
+  onDeleteBoard,
+}: Props) {
   const filter = useUI((s) => s.filter);
   const setFilter = useUI((s) => s.setFilter);
   const query = useUI((s) => s.query);
@@ -74,7 +96,16 @@ export function TasksMobile({ tasks, cats, columns, actions, loading, theme, onS
           <div className="tdm-head-top">
             <div className="tdm-greet">
               <div className="tdm-eyebrow">{eyebrow}</div>
-              <h1>My Tasks</h1>
+              {/* Same switcher as the desktop top bar: tap the board name to
+                  switch / rename / delete boards or add a new one. */}
+              <BoardSwitcher
+                boards={boards}
+                activeId={activeBoardId}
+                onSwitch={onSwitchBoard}
+                onAdd={onAddBoard}
+                onRename={onRenameBoard}
+                onDelete={onDeleteBoard}
+              />
               <div className="sub">
                 {counts.All ?? 0} open · {doneCount} done
               </div>

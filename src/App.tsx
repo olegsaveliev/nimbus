@@ -347,6 +347,12 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
         theme={prefs.theme}
         onSelectTheme={selectTheme}
         onGoWishlist={() => setView("wishlist")}
+        boards={boards}
+        activeBoardId={activeBoardId}
+        onSwitchBoard={switchBoard}
+        onAddBoard={addBoard}
+        onRenameBoard={(id, name) => renameBoard.mutate({ id, name })}
+        onDeleteBoard={handleDeleteBoard}
       />
     );
   }
