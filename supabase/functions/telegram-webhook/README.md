@@ -44,9 +44,10 @@ board. Quick-add syntax works: `Email Maya tomorrow #Work !high`.
 
 ## Connecting an account
 
-Nimbus → **Settings → Telegram → Connect Telegram** generates a one-time code.
-Send `/start <code>` to the bot (or tap the link if `VITE_TELEGRAM_BOT` is set).
-After that, any plain message becomes a task. `/help` shows the syntax.
+Nimbus → **Settings → Telegram → Connect Telegram** generates a one-time code
+(valid for **15 minutes**, single use). Send `/start <code>` to the bot (or tap
+the link if `VITE_TELEGRAM_BOT` is set). After that, any plain message becomes
+a task. `/help` shows the syntax.
 
 ## Notes
 

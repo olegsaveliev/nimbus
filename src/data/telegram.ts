@@ -7,10 +7,14 @@ export interface TelegramLink {
   code: string | null;
 }
 
+const CODE_TTL_MS = 15 * 60 * 1000;
+
 export async function fetchTelegramLink(): Promise<TelegramLink> {
-  const { data, error } = await supabase.from("telegram_links").select("chat_id, link_code").maybeSingle();
+  const { data, error } = await supabase.from("telegram_links").select("chat_id, link_code, code_issued_at").maybeSingle();
   if (error) throw error;
-  return { linked: data?.chat_id != null, code: data?.link_code ?? null };
+  // Hide expired codes so Settings offers a fresh one instead of a dud.
+  const fresh = data?.code_issued_at != null && Date.now() - new Date(data.code_issued_at).getTime() < CODE_TTL_MS;
+  return { linked: data?.chat_id != null, code: fresh ? (data?.link_code ?? null) : null };
 }
 
 /** Create (or rotate) the one-time connect code shown in Settings. */
@@ -23,7 +27,7 @@ export async function createTelegramCode(): Promise<string> {
   const code = Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => alphabet[b % alphabet.length]).join("");
   const { error } = await supabase
     .from("telegram_links")
-    .upsert({ user_id: uid, link_code: code, chat_id: null, linked_at: null });
+    .upsert({ user_id: uid, link_code: code, code_issued_at: new Date().toISOString(), chat_id: null, linked_at: null });
   if (error) throw error;
   return code;
 }

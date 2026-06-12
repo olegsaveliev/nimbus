@@ -167,13 +167,16 @@ async function handleStart(chatId: number, code: string | undefined): Promise<vo
   }
   // One chat = one account: free this chat_id from any previous link first.
   await db.from("telegram_links").update({ chat_id: null, linked_at: null }).eq("chat_id", chatId);
+  // Codes are valid for 15 minutes from issue.
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data, error } = await db
     .from("telegram_links")
-    .update({ chat_id: chatId, linked_at: new Date().toISOString(), link_code: null })
+    .update({ chat_id: chatId, linked_at: new Date().toISOString(), link_code: null, code_issued_at: null })
     .eq("link_code", code)
+    .gte("code_issued_at", cutoff)
     .select("user_id");
   if (error || !data || data.length === 0) {
-    await reply(chatId, "That code wasn't recognized. Generate a fresh one in Nimbus → Settings → Telegram.");
+    await reply(chatId, "That code wasn't recognized or has expired (codes last 15 minutes). Generate a fresh one in Nimbus → Settings → Telegram.");
     return;
   }
   await reply(chatId, "Connected ✓ — send me a task any time and it'll appear in your To Do column.");

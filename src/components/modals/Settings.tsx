@@ -145,7 +145,7 @@ export function Settings({ wipLimit, setWipLimit, onExport, tweaks, setTweak, on
             ) : tg.code ? (
               <>
                 <p className="kb-note">
-                  Send this to the bot to finish connecting:{" "}
+                  Send this to the bot within 15 minutes to finish connecting:{" "}
                   <b style={{ color: "var(--ink)", fontFamily: "ui-monospace, Menlo, monospace" }}>/start {tg.code}</b>
                 </p>
                 <div className="kb-row">
