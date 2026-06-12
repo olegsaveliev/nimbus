@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Tweaks } from "@/types";
 import { aiSource, clearAKey, clearOKey, getAKey, getOKey, getProvider, setAKey, setOKey, setProvider } from "@/services/ai";
-import { IconDownload, IconFlow, IconGear, IconKey, IconSpark } from "@/components/icons/Icons";
+import { isMockBackend } from "@/lib/supabase";
+import { createTelegramCode, disconnectTelegram, fetchTelegramLink, type TelegramLink } from "@/data/telegram";
+import { IconChat, IconDownload, IconFlow, IconGear, IconKey, IconSpark } from "@/components/icons/Icons";
 import { Overlay } from "@/components/common/Overlay";
 
 interface Props {
@@ -26,6 +28,23 @@ export function Settings({ wipLimit, setWipLimit, onExport, tweaks, setTweak, on
   const prov = getProvider();
   const saveA = () => { const v = aIn.trim(); if (!v) return; setAKey(v); setAIn(""); bump(); };
   const saveO = () => { const v = oIn.trim(); if (!v) return; setOKey(v); setOIn(""); bump(); };
+
+  // Telegram link state: null = loading, "unavailable" = table missing / demo mode.
+  const [tg, setTg] = useState<TelegramLink | "unavailable" | null>(null);
+  useEffect(() => {
+    if (isMockBackend) {
+      setTg("unavailable");
+      return;
+    }
+    fetchTelegramLink().then(setTg).catch(() => setTg("unavailable"));
+  }, []);
+  const tgConnect = () => {
+    createTelegramCode().then((code) => setTg({ linked: false, code })).catch(() => setTg("unavailable"));
+  };
+  const tgDisconnect = () => {
+    disconnectTelegram().then(() => setTg({ linked: false, code: null })).catch(() => setTg("unavailable"));
+  };
+  const botUser = ((import.meta.env.VITE_TELEGRAM_BOT as string | undefined) || "").replace(/^@/, "");
 
   return (
     <Overlay onClose={onClose}>
@@ -107,6 +126,42 @@ export function Settings({ wipLimit, setWipLimit, onExport, tweaks, setTweak, on
             <button className="bf-btn primary" style={{ alignSelf: "flex-start" }} onClick={() => { onExport(); setExported(true); setTimeout(() => setExported(false), 1600); }}>
               <IconDownload s={14} />{exported ? "Copied to clipboard!" : "Copy board as Markdown"}
             </button>
+          </div>
+
+          <div className="keybox" style={{ marginTop: 10 }}>
+            <div className="kb-title"><IconChat s={14} /> Telegram</div>
+            <p className="kb-note">
+              Add tasks from anywhere by messaging your bot — <b style={{ color: "var(--ink)" }}>"Email Maya tomorrow #Work !high"</b> lands in To Do on your active board.
+            </p>
+            {tg === null ? (
+              <p className="kb-note">Checking connection…</p>
+            ) : tg === "unavailable" ? (
+              <p className="kb-note">Not available {isMockBackend ? "in demo mode" : "yet — apply the telegram migration and deploy the webhook (see supabase/functions/telegram-webhook)"}.</p>
+            ) : tg.linked ? (
+              <div className="kb-row">
+                <span style={{ color: "#1f8f54", fontWeight: 800, fontSize: 12.5 }}>Connected ✓</span>
+                <button className="bf-btn" onClick={tgDisconnect}>Disconnect</button>
+              </div>
+            ) : tg.code ? (
+              <>
+                <p className="kb-note">
+                  Send this to the bot to finish connecting:{" "}
+                  <b style={{ color: "var(--ink)", fontFamily: "ui-monospace, Menlo, monospace" }}>/start {tg.code}</b>
+                </p>
+                <div className="kb-row">
+                  {botUser && (
+                    <a className="bf-btn primary" href={`https://t.me/${botUser}?start=${tg.code}`} target="_blank" rel="noreferrer noopener">
+                      Open @{botUser}
+                    </a>
+                  )}
+                  <button className="bf-btn" onClick={tgConnect}>New code</button>
+                </div>
+              </>
+            ) : (
+              <button className="bf-btn primary" style={{ alignSelf: "flex-start" }} onClick={tgConnect}>
+                Connect Telegram
+              </button>
+            )}
           </div>
 
           <div className="keybox" style={{ marginTop: 10 }}>

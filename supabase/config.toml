@@ -2,3 +2,8 @@
 # `supabase db push` to apply migrations. (AI is BYOK / client-side — no
 # Edge Function to deploy.)
 project_id = "nimbus"
+
+# Telegram webhook must be reachable by Telegram's servers without a JWT;
+# it authenticates with TELEGRAM_WEBHOOK_SECRET instead.
+[functions.telegram-webhook]
+verify_jwt = false
