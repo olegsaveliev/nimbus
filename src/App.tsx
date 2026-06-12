@@ -14,6 +14,7 @@ import { qk } from "@/lib/queryClient";
 import { useUI } from "@/state/uiStore";
 import { usePomodoro } from "@/hooks/usePomodoro";
 import { useHotkeys } from "@/hooks/useHotkeys";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { usePreferences } from "@/data/preferences";
 import { ensureStarterBoard, useBoards, useCreateBoard, useDeleteBoard, useRenameBoard } from "@/data/boards";
 import { useBoardData } from "@/data/useBoardData";
@@ -25,6 +26,8 @@ import { Board } from "@/components/board/Board";
 import { CalendarView } from "@/components/views/CalendarView";
 import { Reports } from "@/components/views/Reports";
 import { WishlistView } from "@/components/views/WishlistView";
+import { WishlistMobile } from "@/components/mobile/WishlistMobile";
+import { TasksMobile } from "@/components/mobile/TasksMobile";
 import { Detail } from "@/components/modals/Detail";
 import { CategoryManager } from "@/components/modals/CategoryManager";
 import { DailyBrief } from "@/components/modals/DailyBrief";
@@ -69,6 +72,7 @@ export function App() {
 
   usePomodoro();
   useHotkeys();
+  const isMobile = useIsMobile();
 
   // apply theme + tweaks to CSS vars — but only once real preferences have loaded,
   // so we don't briefly overwrite the inline boot script's theme with the defaults
@@ -315,15 +319,34 @@ TASKS:\n${summary}\n\nREQUEST: ${q}`;
     }
   };
 
+  const selectTheme = (i: number) => updatePrefs({ theme: i, tweaks: { ...prefs.tweaks, accent: THEMES[i].accent } });
+
   // Wishlist is a self-contained top-level space with its own two-column shell;
   // render it instead of the tasks stage (the tasks view is left fully intact).
   // Theme uses the same global preferences system as the rest of the app.
+  // On phones it swaps to the dedicated mobile screen (same data layer).
   if (view === "wishlist") {
+    return isMobile ? (
+      <WishlistMobile theme={prefs.theme} onSelectTheme={selectTheme} onBackToTasks={() => setView("board")} />
+    ) : (
+      <WishlistView theme={prefs.theme} onSelectTheme={selectTheme} onBackToTasks={() => setView("board")} />
+    );
+  }
+
+  // Phone board view: the kanban mapped to vertical status sections with a
+  // docked add bar (from the mobile design handoff). Desktop keeps the full
+  // stage below, and calendar/reports stay on the responsive desktop layout.
+  if (isMobile && view === "board") {
     return (
-      <WishlistView
+      <TasksMobile
+        tasks={tasks}
+        cats={cats}
+        columns={columns}
+        actions={actions}
+        loading={!data}
         theme={prefs.theme}
-        onSelectTheme={(i) => updatePrefs({ theme: i, tweaks: { ...prefs.tweaks, accent: THEMES[i].accent } })}
-        onBackToTasks={() => setView("board")}
+        onSelectTheme={selectTheme}
+        onGoWishlist={() => setView("wishlist")}
       />
     );
   }

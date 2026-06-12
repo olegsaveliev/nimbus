@@ -5,6 +5,7 @@ import { queryClient } from "@/lib/queryClient";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Root } from "@/Root";
 import "@/styles/nimbus.css";
+import "@/styles/nimbus-mobile.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
