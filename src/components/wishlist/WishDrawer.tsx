@@ -30,6 +30,7 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
     where: item.where === "—" ? "" : item.where,
     target: item.target,
     note: item.note,
+    link: item.link,
     // kept as a raw string so partial decimals (e.g. "12.") survive typing
     price: item.price != null ? String(item.price) : "",
   }));
@@ -42,12 +43,13 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
       where: item.where === "—" ? "" : item.where,
       target: item.target,
       note: item.note,
+      link: item.link,
       price: item.price != null ? String(item.price) : "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const setText = (key: "title" | "where" | "target" | "note", v: string) => {
+  const setText = (key: "title" | "where" | "target" | "note" | "link", v: string) => {
     setDraft((p) => ({ ...p, [key]: v }));
     onPatch(item.id, { [key]: v } as Partial<Wish>);
   };
@@ -172,6 +174,11 @@ export function WishDrawer({ item, onClose, onPatch, onBump, onDel }: Props) {
           <label className="wl-f">
             <span>Why I want it</span>
             <textarea className="wl-note" value={draft.note} onChange={(e) => setText("note", e.target.value)} placeholder="Add a note…" rows={3} />
+          </label>
+
+          <label className="wl-f">
+            <span>Link</span>
+            <input value={draft.link} onChange={(e) => setText("link", e.target.value)} placeholder="Paste a store link…" inputMode="url" />
           </label>
 
           <div className="wl-stage-field">
